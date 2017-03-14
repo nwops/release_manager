@@ -1,4 +1,5 @@
 require 'json'
+require_relative 'errors'
 class PuppetModule
  attr_reader :name, :metadata_file, :mod_path
  
@@ -16,7 +17,11 @@ class PuppetModule
  end
  # @returns [Hash] the metadata object as a ruby hash
  def metadata
-   @metadata ||= JSON.parse(File.read(metadata_file))
+   unless @metadata
+     raise ModNotFoundException unless File.exists?(metadata_file) 
+     @metadata ||= JSON.parse(File.read(metadata_file))
+   end
+   @metadata
  end
 
  def tags

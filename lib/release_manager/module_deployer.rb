@@ -11,7 +11,7 @@ class ModuleDeployer
   end
 
   def mod_path
-    @mod_path ||= options[:modulepath] || ENV['MOD_DIR']
+    @mod_path ||= options[:modulepath] || ENV['MOD_DIR'] || File.expand_path('./')
   end
 
   def puppet_module 
@@ -45,6 +45,11 @@ class ModuleDeployer
 
     begin
       check_requirements
+      pf = Puppetfile.new(puppetfile_path)
+      ver = pf.write_version(puppet_module.name, latest_version)
+      puts "Found module #{puppet_module.name} with version : #{ver}".green
+      pf.to_puppetfile
+      puts "Updated module #{puppet_module.name} in Puppetfile to version : #{ver}".green
     rescue PuppetfileNotFoundException
       puts "Cannot find the puppetfile at #{puppetfile_path}".red
       exit -1 
@@ -52,13 +57,6 @@ class ModuleDeployer
       puts "Invalid module path for #{mod_path}".red
       exit -1
     end
-
-
-    pf = Puppetfile.new(puppetfile_path)
-    ver = pf.write_version(puppet_module.name, latest_version)
-    puts "Found module #{puppet_module.name} with version : #{ver}".green
-    pf.to_puppetfile
-    puts "Updated module #{puppet_module.name} in Puppetfile to version : #{ver}".green
   end
 end
 # TODO:
