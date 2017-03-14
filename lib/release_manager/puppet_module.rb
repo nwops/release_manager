@@ -1,11 +1,16 @@
 require 'json'
 require_relative 'errors'
+
 class PuppetModule
- attr_reader :name, :metadata_file, :mod_path
+ attr_reader :name, :metadata_file, :mod_path, :version, :upstream
+ attr_writer :version, :source
  
- def initialize(mod_path)
+ def initialize(mod_path, upstream = nil)
+   raise ModNotFoundException if mod_path.nil?
    @mod_path = mod_path
+   @upstream = upstream 
    @metadata_file = File.join(mod_path, 'metadata.json')  
+   raise InvalidMetadataSource if source !~ /\Agit\@/ 
  end
 
  def name
@@ -15,6 +20,7 @@ class PuppetModule
  def namespaced_name 
    metadata['name']
  end
+
  # @returns [Hash] the metadata object as a ruby hash
  def metadata
    unless @metadata
@@ -28,6 +34,14 @@ class PuppetModule
   `git --git-dir=#{mod_path}/.git tag`.split("\n")
  end
 
+ def source=(s)
+   metadata['source'] = s
+ end
+
+ def source
+   upstream || metadata['source']
+ end
+
  def latest_tag
    tags.last 
  end
@@ -37,9 +51,89 @@ class PuppetModule
    metadata['name']
  end
 
+ def version=(v)
+   metadata['version'] = v
+ end
+
  # @returns [String] the version found in the metadata file
  def version
    metadata['version']
+ end
+
+ def tag_module
+   `git --git-dir=#{mod_path}/.git tag -m 'v#{version}' v#{version}`
+ end
+
+ def bump_patch_version
+    return unless version
+    pieces = version.split('.')
+    raise "invalid semver structure #{version}" if pieces.count != 3
+    pieces[2] = pieces[2].next
+    metadata['version'] = pieces.join('.')
+ end
+
+ def bump_minor_version
+    return unless version
+    pieces = version.split('.')
+    raise "invalid semver structure #{version}" if pieces.count != 3
+    pieces[2] = '0'
+    pieces[1] = pieces[1].next
+    metadata['version'] = pieces.join('.')
+ end
+
+ def bump_major_version
+    return unless version
+    pieces = version.split('.')
+    raise "invalid semver structure #{version}" if pieces.count != 3
+    pieces[2] = '0'
+    pieces[1] = '0'
+    pieces[0] = pieces[0].next
+    metadata['version'] = pieces.join('.')
+ end
+
+ def to_s
+   JSON.pretty_generate(metadata)
+ end
+
+ def r10k_module?
+   name == 'r10k-control'
+ end
+
+ def branch_exists?(name)
+   `#{git_command} branch |grep '#{name}$'`
+   $?.success?
+ end
+
+ def git_command
+   @git_command ||= "git --git-dir=#{mod_path}/.git"
+ end
+
+ # ensures the dev branch has been created and is up to date
+ def create_dev_branch
+  `#{git_command} checkout -b #{src_branch} upstream/#{src_branch}` unless branch_exists?(src_branch)
+  # ensure we have updated our local branche
+  `#{git_command} checkout #{src_branch}`
+  `#{git_command} rebase "upstream/#{src_branch}" `
+ end
+
+ # @returns [String] - the source branch to push to
+ # if r10k-control this branch will be dev, otherwise master
+ def src_branch
+   r10k_module? ? 'dev' : 'master'
+ end
+
+ def push
+   `#{git_command} push #{source} #{src_branch} --tags`
+ end
+
+ def commit_metadata
+   to_metadata_file
+   `#{git_command} add #{metadata_file}`
+   `#{git_command} commit -n -m "[Autobot] - bump version to #{version}"`
+ end
+
+ def to_metadata_file
+   File.write(metadata_file, to_s)
  end
 
 end

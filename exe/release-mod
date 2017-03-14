@@ -2,4 +2,4 @@
 
 require 'release_manager'
 
-ModuleDeployer.run
+Release.run
