@@ -62,7 +62,7 @@ class Puppetfile
   end
 
   def to_s
-    modules.collect {|n, mod| mod.to_s }.join("\n")
+    modules.collect {|n, mod| mod.to_s }.join("\n\n")
   end
 
   def self.to_puppetfile(json_data)
@@ -70,8 +70,8 @@ class Puppetfile
     mods = obj.collect do |name, metadata|
       name = "mod '#{name}',"
       data = metadata.sort.map { |k, v| ":#{k} => '#{v}'" }.join(",\n\  ")
-      "#{name}\n  #{data}"
-    end.join("\n\n")
+      "#{name}\n  #{data}\n"
+    end.join("\n")
     mods
   end
 
