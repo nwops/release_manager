@@ -1,6 +1,6 @@
 # ReleaseManager
 
-This gem provides workflow automations around releasing and deploy puppet modules within r10k environments.
+This gem provides workflow automations around releasing and deploying puppet modules within r10k environments.
 
 ## Installation
 
