@@ -10,6 +10,12 @@ Add this line to your application's Gemfile:
 gem 'release_manager'
 ```
 
+or the following if you don't have a gemserver
+
+```ruby
+gem 'release_manager', git: 'git@nr1plvgit01.gcs.frb.org:devops/release_manager.git'
+```
+
 And then execute:
 
     $ bundle
