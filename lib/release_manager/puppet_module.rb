@@ -96,7 +96,7 @@ class PuppetModule
  end
 
  def r10k_module?
-   name == 'r10k-control'
+   name =~ /r10k_control/i
  end
 
  def branch_exists?(name)
@@ -105,7 +105,7 @@ class PuppetModule
  end
 
  def git_command
-   @git_command ||= "git --git-dir=#{mod_path}/.git"
+   @git_command ||= "git --work-tree=#{mod_path} --git-dir=#{mod_path}/.git"
  end
 
  # ensures the dev branch has been created and is up to date
