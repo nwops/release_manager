@@ -47,11 +47,20 @@ Summary: Gets the version of your module found in the metadata
 
 EOF
 )
-      opts.on('-p', "--puppetfile [PUPPETFILE]", 'Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile') do |p|
+      opts.on('-p', "--puppetfile PUPPETFILE", 'Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile') do |p|
         options[:puppetfile] = p
       end
       opts.on('-m', '--modulepath MODULEPATH', "Path to to module, defaults to: #{Dir.getwd}") do |p|
         options[:modulepath] = p
+      end
+      opts.on('-c', '--commit', 'Commit the Puppetfile change') do |p|
+        options[:commit] = p
+      end
+      opts.on('-u', '--push', 'Push the changes to the remote') do |p|
+        options[:push] = p
+      end
+      opts.on('-r', '--remote REMOTE', 'Remote name or url to push changes to') do |p|
+        options[:remote] = p
       end
     end.parse!
     m = ModuleDeployer.new(options)
@@ -63,9 +72,11 @@ EOF
       check_requirements
       pf = Puppetfile.new(puppetfile_path)
       ver = pf.write_version(puppet_module.name, latest_version)
-      puts "Found module #{puppet_module.name} with version : #{ver}".green
+      puts "Found module #{puppet_module.name} with version: #{ver}".green
       pf.to_puppetfile
-      puts "Updated module #{puppet_module.name} in Puppetfile to version : #{ver}".green
+      puts "Updated module #{puppet_module.name} in Puppetfile to version: #{ver}".green
+      pf.commit("bump #{puppet_module.name} to version #{latest_version}") if options[:commit]
+      pf.push(options[:remote], pf.current_branch) if options[:remote]
     rescue InvalidMetadataSource
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
     rescue PuppetfileNotFoundException

@@ -4,11 +4,32 @@ require_relative 'errors'
 require 'json'
 
 class Puppetfile
-  attr_accessor :modules, :puppetfile, :data
+  attr_accessor :modules, :puppetfile, :data, :base_path
   BUMP_TYPES = %w{patch minor major}
 
   def initialize(puppetfile = 'Puppetfile')
     @puppetfile = puppetfile
+  end
+
+  def base_path
+    @base_path ||= File.dirname(puppetfile)
+  end
+
+  def git_command
+    "git --work-tree=#{base_path} --git-dir=#{base_path}/.git"
+  end
+
+  def commit(message)
+    puts `#{git_command} add #{puppetfile}`
+    puts `#{git_command} commit -n -m "[Autobot] - #{message}"`
+  end
+
+  def current_branch
+    `#{git_command} rev-parse --abbrev-ref HEAD`
+  end
+
+  def push(remote, branch)
+    `#{git_command} push #{remote} #{branch}`
   end
 
   def data
