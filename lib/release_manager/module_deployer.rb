@@ -36,7 +36,7 @@ class ModuleDeployer
   def self.run
     options = {}
     OptionParser.new do |opts|
-      opts.program_name = 'deploy_mod'
+      opts.program_name = 'deploy-mod'
       opts.version = ReleaseManager::VERSION
       opts.on_head(<<-EOF
 

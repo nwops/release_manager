@@ -121,7 +121,7 @@ class Release
   def self.run
     options = {}
     OptionParser.new do |opts|
-      opts.program_name = 'release'
+      opts.program_name = 'release-mod'
       opts.version = ReleaseManager::VERSION
  opts.on_head(<<-EOF
 
