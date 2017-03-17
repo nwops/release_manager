@@ -58,8 +58,10 @@ The `deploy-mod` command assists you with updating an r10k environment with the 
 2. removes the branch or ref argument from the "mod" declaration
 3. adds a tag argument with the latest version defined in the module's metadata.json file.
 
-You can also optionally pass in the --commmit and --push
-At this time the `deploy-mod` performs no other actions and leaves it up to you to commit and push the changes.
+You can also optionally pass in the `--commmit` flag to create a commit.  
+
+Additonally if you wish to push the current branch you can also
+pass in the `--push` and `--remote git@nr1plvgit01.gcs.frb.org:cosman/r10k-control` option.
 
 ```
 Usage: deploy-mod [options]
