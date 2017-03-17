@@ -36,13 +36,45 @@ The `release-mod` command will help you release new module and r10k-control repo
 4. create a git tag with the name as the version ie. v0.1.4
 5. push the changes and tag to the upstream repo using the metadata.json's source field
 
+```
+Usage: release-mod [options]
+
+Summary: Bumps the module version to the next revision and
+         updates the changelog.md file with the new
+         version by reading the metadata.json file. This should
+         be run inside a module directory.
+
+    -d, --dry-run                    Do a dry run, without making changes
+    -a, --auto                       Run this script without interaction
+    -m, --module-path                The path to the module, defaults to current working directory
+    -b, --no-bump                    Do not bump the version in metadata.json
+    -r, --repo [REPO]                The repo to use, defaults to repo found in the metadata source
+        --verbose                    Extra logging
+```
+
 ### deploy-mod
 The `deploy-mod` command assists you with updating an r10k environment with the new module version by doing the following.
 1. search the r10k-control repo's Puppetfile for a module with a similar name of the current module
 2. removes the branch or ref argument from the "mod" declaration
 3. adds a tag argument with the latest version defined in the module's metadata.json file.
 
+You can also optionally pass in the --commmit and --push
 At this time the `deploy-mod` performs no other actions and leaves it up to you to commit and push the changes.
+
+```
+Usage: deploy-mod [options]
+
+Summary: Gets the version of your module found in the metadata
+         and populates the r10k-control Puppetfile with the updated
+         tag version. Revmoes any branch or ref reference and replaces
+         with tag.  Currently it is up to you to commit and push the Puppetfile change.
+
+    -p, --puppetfile PUPPETFILE      Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile
+    -m, --modulepath MODULEPATH      Path to to module, defaults to: /home/p1cxom2/repos/release_manager
+    -c, --commit                     Commit the Puppetfile change
+    -u, --push                       Push the changes to the remote
+    -r, --remote REMOTE              Remote name or url to push changes to
+```
 
 ### bump-changelog
 The `bump-changelog` command simply changes 'Unreleased' section with the version string found the in the module's metadata file
