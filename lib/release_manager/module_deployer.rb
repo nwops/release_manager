@@ -76,7 +76,7 @@ EOF
       pf.to_puppetfile
       puts "Updated module #{puppet_module.name} in Puppetfile to version: #{ver}".green
       pf.commit("bump #{puppet_module.name} to version #{latest_version}") if options[:commit]
-      pf.push(options[:remote], pf.current_branch) if options[:remote]
+      pf.push(options[:remote], pf.current_branch) if options[:remote] && options[:push]
     rescue InvalidMetadataSource
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
     rescue PuppetfileNotFoundException
