@@ -10,12 +10,6 @@ Add this line to your application's Gemfile:
 gem 'release_manager'
 ```
 
-or the following if you don't have a gemserver
-
-```ruby
-gem 'release_manager', git: 'git@nr1plvgit01.gcs.frb.org:devops/release_manager.git'
-```
-
 And then execute:
 
     $ bundle
@@ -61,7 +55,7 @@ The `deploy-mod` command assists you with updating an r10k environment with the 
 You can also optionally pass in the `--commmit` flag to create a commit.  
 
 Additonally if you wish to push the current branch you can also
-pass in the `--push` and `--remote git@nr1plvgit01.gcs.frb.org:cosman/r10k-control` option.
+pass in the `--push` and `--remote r10k-control` option.
 
 ```
 Usage: deploy-mod [options]
@@ -94,7 +88,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on https://nr1plvgit01.gcs.frb.org/devops/release_manager.
+Bug reports and pull requests are welcome on release_manager.
 
 
 ## License

@@ -7,6 +7,7 @@ class Puppetfile
   attr_accessor :modules, :puppetfile, :data, :base_path
   BUMP_TYPES = %w{patch minor major}
 
+  # @param [String] puppetfile - the path to the puppetfile
   def initialize(puppetfile = 'Puppetfile')
     @puppetfile = puppetfile
   end
