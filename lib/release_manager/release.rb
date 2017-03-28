@@ -138,7 +138,7 @@ EOF
       opts.on('-a', '--auto', 'Run this script without interaction') do |c|
 	options[:auto] = c
       end
-      opts.on('-m', '--module-path', "The path to the module, defaults to current working directory") do |c|
+      opts.on('-m', '--module-path [MODULEPATH]', "The path to the module, defaults to #{Dir.getwd}") do |c|
         options[:path] = c
       end
       opts.on('-b', '--no-bump', "Do not bump the version in metadata.json") do |c|

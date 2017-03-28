@@ -47,19 +47,19 @@ Summary: Gets the version of your module found in the metadata
 
 EOF
 )
-      opts.on('-p', "--puppetfile PUPPETFILE", 'Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile') do |p|
+      opts.on('-p', "--puppetfile [PUPPETFILE]", 'Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile') do |p|
         options[:puppetfile] = p
       end
-      opts.on('-m', '--modulepath MODULEPATH', "Path to to module, defaults to: #{Dir.getwd}") do |p|
+      opts.on('-m', '--modulepath [MODULEPATH]', "Path to to module, defaults to: #{Dir.getwd}") do |p|
         options[:modulepath] = p
       end
-      opts.on('-c', '--commit', 'Commit the Puppetfile change') do |p|
+      opts.on('-c', '--commit', 'Optionally, Commit the Puppetfile change') do |p|
         options[:commit] = p
       end
-      opts.on('-u', '--push', 'Push the changes to the remote') do |p|
+      opts.on('-u', '--push', 'Optionally, Push the changes to the remote') do |p|
         options[:push] = p
       end
-      opts.on('-r', '--remote REMOTE', 'Remote name or url to push changes to') do |p|
+      opts.on('-r', '--remote REMOTE', 'Optionally, spaecify a remote name or url to push changes to') do |p|
         options[:remote] = p
       end
     end.parse!
