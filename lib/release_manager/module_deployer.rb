@@ -84,6 +84,7 @@ EOF
       exit -1 
     rescue ModNotFoundException
       puts "Invalid module path for #{mod_path}".red
+      puts "This means that the metadata.json name field does not match the module name found in the Puppetfile"
       exit -1
     end
   end

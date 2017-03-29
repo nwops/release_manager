@@ -5,3 +5,4 @@ class InvalidPuppetfileException < Exception; end
 class InvalidMetadataSource < Exception; end
 class NoUnreleasedLine < Exception; end
 class NoChangeLogFile < Exception; end
+class UpstreamSourceMatch < Exception; end

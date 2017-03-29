@@ -74,11 +74,18 @@ class Release
   def check_requirements
     begin
       Changelog.check_requirements(puppet_module.mod_path)
+      PuppetModule.check_requirements(puppet_module.mod_path)
     rescue NoUnreleasedLine
       puts "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry".fatal
       exit 1
+    rescue UpstreamSourceMatch
+      puts "The upstream remote url does not match the source url in the metadata.json source".fatal
+      exit 1
+    rescue InvalidMetadataSource
+      puts "The module's metadata source is invalid, please fix it".fatal
+      exit 1
     rescue NoChangeLogFile
-      puts "CHANGELOG.md does not exist".fatal
+      puts "CHANGELOG.md does not exist, please create one".fatal
       exit 1
     end
   end
@@ -111,9 +118,8 @@ class Release
   end
 
   def add_upstream_remote
-    upstream = `git config --get remote.upstream.url`.chomp
-    if upstream != puppet_module.source 
-      print "Ok to change your upstream repo from #{upstream}\n to #{puppet_module.source}? (y/n)"
+    if upstream != puppet_module.source
+      print "Ok to change your upstream remote from #{upstream}\n to #{puppet_module.source}? (y/n)"
       answer = gets.downcase.chomp
       if answer == 'y'
 	# something else we can't identify

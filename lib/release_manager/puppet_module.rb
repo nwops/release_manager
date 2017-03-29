@@ -1,7 +1,8 @@
 require 'json'
 require_relative 'errors'
+require 'release_manager/workflow_action'
 
-class PuppetModule
+class PuppetModule < WorkflowAction
  attr_reader :name, :metadata_file, :mod_path, :version, :upstream
  attr_writer :version, :source
  
@@ -9,8 +10,13 @@ class PuppetModule
    raise ModNotFoundException if mod_path.nil?
    @mod_path = mod_path
    @upstream = upstream 
-   @metadata_file = File.join(mod_path, 'metadata.json')  
-   raise InvalidMetadataSource if source !~ /\Agit\@/ 
+   @metadata_file = File.join(mod_path, 'metadata.json')
+ end
+
+ def self.check_requirements(path)
+   pm = new(path)
+   raise InvalidMetadataSource if pm.source !~ /\Agit\@/
+   raise UpstreamSourceMatch unless pm.git_upstream_set?
  end
 
  def name
@@ -28,6 +34,14 @@ class PuppetModule
      @metadata ||= JSON.parse(File.read(metadata_file))
    end
    @metadata
+ end
+
+ def git_upstream_url
+   `#{git_command} config --get remote.upstream.url`.chomp
+ end
+
+ def git_upstream_set?
+    source == git_upstream_url
  end
 
  def tags
@@ -108,12 +122,16 @@ class PuppetModule
    @git_command ||= "git --work-tree=#{mod_path} --git-dir=#{mod_path}/.git"
  end
 
+ def upstream
+   @upstream || source
+ end
+
  # ensures the dev branch has been created and is up to date
  def create_dev_branch
-  `#{git_command} checkout -b #{src_branch} upstream/#{src_branch}` unless branch_exists?(src_branch)
+  `#{git_command} checkout -b #{src_branch} #{upstream}/#{src_branch}` unless branch_exists?(src_branch)
   # ensure we have updated our local branche
   `#{git_command} checkout #{src_branch}`
-  `#{git_command} rebase "upstream/#{src_branch}" `
+  `#{git_command} rebase "#{upstream}/#{src_branch}" `
  end
 
  # @returns [String] - the source branch to push to
