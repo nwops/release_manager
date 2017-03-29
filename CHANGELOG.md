@@ -1,4 +1,11 @@
 # Release Manager
 
+## Unreleased
+
+## v0.1.4
+ * Fixes #8 - upstream does not exist
+ * Fixes #9 - bump changelog assumes changelog exists
+ * Fixes #10 - executable scripts should communicate options more clearly
+ 
 ## v0.1.0
-* initial implemention
+* initial implementation
