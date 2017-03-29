@@ -1,7 +1,8 @@
 # Release Manager
 
 ## Unreleased
-
+ * Fixes stack level issue when calling upstream
+ 
 ## v0.1.6
  * add dry run to deploy-mod
  

@@ -135,7 +135,7 @@ class PuppetModule < WorkflowAction
  end
 
  def upstream
-   @upstream || source
+   @upstream
  end
 
  # ensures the dev branch has been created and is up to date
