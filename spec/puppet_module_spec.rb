@@ -54,4 +54,13 @@ describe PuppetModule do
       expect(puppetmodule.git_upstream_set?).to eq(true)
     end
   end
+
+  let(:tags) do
+    %w{v0.0.1 v0.0.2 v0.0.3 v0.0.10 v0.0.11 0.0.11 0.0.1 v0.0.12}
+  end
+
+  it 'return latest tag when not ordered' do
+    allow(puppetmodule).to receive(:tags).and_return(tags)
+    expect(puppetmodule.latest_tag).to eq('v0.0.12')
+  end
 end

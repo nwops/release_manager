@@ -42,7 +42,7 @@ describe Changelog do
       end
       it 'updates line' do
         result = ["# Module name\n", "\n", "## Unreleased\n",
-                  "\n## Version 0.1.2\nReleased: March 28, 2017\n",
+                  "\n## Version 0.1.2\nReleased: #{Time.now.strftime("%B %d, %Y")}\n",
                   "\n", " * Fixes bug 1\n", " * Fixes bug 2\n",
                   " \n", "## Version 3.2"]
         expect(log.update_unreleased).to eq(result)

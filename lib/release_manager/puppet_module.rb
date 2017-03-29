@@ -45,7 +45,7 @@ class PuppetModule < WorkflowAction
  end
 
  def tags
-  `git --git-dir=#{mod_path}/.git tag`.split("\n")
+  `#{git_command} tag`.split("\n").map{|v| pad_version_string(v)}
  end
 
  def source=(s)
@@ -56,8 +56,20 @@ class PuppetModule < WorkflowAction
    upstream || metadata['source']
  end
 
+ def pad_version_string(version_string)
+   parts = version_string.split('.').reject {|x| x == '*'}
+   while parts.length < 3
+     parts << '0'
+   end
+   parts.join '.'
+ end
+
  def latest_tag
-   tags.last 
+   Gem::Version.new('0.0.12') >= Gem::Version.new('0.0.2')
+   v = tags.sort do |a,b|
+    Gem::Version.new(a.tr('v', '')) <=> Gem::Version.new(b.tr('v', ''))
+   end
+   v.last
  end
 
  # @returns [String] the name of the module found in the metadata file
