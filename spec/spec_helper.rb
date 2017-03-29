@@ -9,3 +9,7 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+def fixtures_dir
+  @fixtures_dir ||= File.join(File.dirname(__FILE__), 'fixtures')
+end

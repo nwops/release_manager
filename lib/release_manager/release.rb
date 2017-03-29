@@ -71,11 +71,24 @@ class Release
     options[:auto] || ENV['AUTO_RELEASE'] == 'true'
   end
 
+  def check_requirements
+    begin
+      Changelog.check_requirements(puppet_module.mod_path)
+    rescue NoUnreleasedLine
+      puts "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry".fatal
+      exit 1
+    rescue NoChangeLogFile
+      puts "CHANGELOG.md does not exist".fatal
+      exit 1
+    end
+  end
+
   # runs all the required steps to release the software 
   # currently this must be done manually by a release manager
   # 
-  def release 
-    # updates the metadata.js file to the nexter version
+  def release
+    check_requirements
+    # updates the metadata.js file to the next version
     puts bump
     # updates the changelog to the next version based on the metadata file
     puts bump_log

@@ -2,6 +2,8 @@ require "release_manager/version"
 require "release_manager/module_deployer"
 require "release_manager/release"
 require "release_manager/changelog"
+require 'release_manager/workflow_action'
+
 class String
   def colorize(color_code)
     "\e[#{color_code}m#{self}\e[0m"
@@ -15,7 +17,11 @@ class String
     colorize(32)
   end
 
-def yellow
+  def fatal
+    red
+  end
+
+  def yellow
     colorize(33)
   end
 end

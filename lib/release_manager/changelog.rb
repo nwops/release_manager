@@ -8,8 +8,9 @@
 require 'json'
 require 'optparse'
 require_relative 'puppet_module'
+require 'release_manager/workflow_action'
 
-class Changelog
+class Changelog < WorkflowAction
   attr_reader :root_dir, :version, :options
 
   def initialize(module_path, version, options = {})
@@ -62,10 +63,7 @@ EOF
   # @returns [String] the full path to the change log file
   def changelog_file
     file = options[:file] || File.join(root_dir, 'CHANGELOG.md')
-    unless File.exists?(file)
-      puts "#{file} does not exist".red
-      exit 1 
-    end
+    raise NoChangeLogFile unless File.exists?(file)
     file
   end
 
@@ -76,18 +74,20 @@ EOF
 
   # @returns [Integer] line number of where the word unreleased is located
   def unreleased_index 
-    changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Unreleased/i }
+    linenum = changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Unreleased/i }
+    raise NoUnreleasedLine unless linenum
+    linenum
   end
 
   # @returns [Boolean]  returns true if the Changelog has already released this version
   def already_released?
-    changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Version #{version}/i }
+    !!changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Version #{version}/i }
   end
 
   # @returns [Array[String]] - inserts the version header in the change log and returns the entire array of lines
   def update_unreleased
     time = Time.now.strftime("%B %d, %Y")
-    changelog_lines.insert(unreleased_index + 1, "\n## Version #{version}\nReleased: #{time}\n\n") 
+    changelog_lines.insert(unreleased_index + 1, "\n## Version #{version}\nReleased: #{time}\n")
   end
 
   # @returns [String] the string representation of the update Changelog file
@@ -102,6 +102,12 @@ EOF
   def create_commit
     `#{git_command} add #{changelog_file}`
     puts `#{git_command} commit -m "[Autobot] - bump changelog to version #{version}"`
+  end
+
+  # checks to make sure the unreleased line is valid, and the file exists
+  def self.check_requirements(path)
+    log = new(path, nil)
+    log.unreleased_index
   end
 end
 
