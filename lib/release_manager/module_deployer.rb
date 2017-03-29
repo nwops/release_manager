@@ -62,6 +62,9 @@ EOF
       opts.on('-r', '--remote REMOTE', 'Optionally, spaecify a remote name or url to push changes to') do |p|
         options[:remote] = p
       end
+      opts.on('-d', 'Perform a dry run without making changes') do |p|
+        options[:dry_run] = p
+      end
     end.parse!
     m = ModuleDeployer.new(options)
     m.run
@@ -71,12 +74,19 @@ EOF
     begin
       check_requirements
       pf = Puppetfile.new(puppetfile_path)
-      ver = pf.write_version(puppet_module.name, latest_version)
-      puts "Found module #{puppet_module.name} with version: #{ver}".green
-      pf.to_puppetfile
-      puts "Updated module #{puppet_module.name} in Puppetfile to version: #{ver}".green
-      pf.commit("bump #{puppet_module.name} to version #{latest_version}") if options[:commit]
-      pf.push(options[:remote], pf.current_branch) if options[:remote] && options[:push]
+      puts "Found module #{puppet_module.name} with version: #{latest_version}".green
+      puts "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
+      if options[:dry_run]
+        puts "Would have committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
+        puts "Would have just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green if options[:remote] && options[:push]
+      else
+        pf.write_version(puppet_module.name, latest_version)
+        pf.to_puppetfile
+        pf.commit("bump #{puppet_module.name} to version #{latest_version}") if options[:commit]
+        puts "Committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
+        pf.push(options[:remote], pf.current_branch) if options[:remote] && options[:push]
+        puts "Just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green
+      end
     rescue InvalidMetadataSource
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
     rescue PuppetfileNotFoundException
@@ -84,12 +94,8 @@ EOF
       exit -1 
     rescue ModNotFoundException
       puts "Invalid module path for #{mod_path}".red
-      puts "This means that the metadata.json name field does not match the module name found in the Puppetfile"
+      puts "This means that the metadata.json name field does not match\nthe module name found in the Puppetfile or this is not a puppet module".fatal
       exit -1
     end
   end
 end
-# TODO:
-# commit puppetfile
-# push code to repo
-# create M

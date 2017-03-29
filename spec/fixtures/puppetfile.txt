@@ -1,0 +1,25 @@
+# Install puppetlabs/apache and keep it up to date with 'master'
+mod 'apache1',
+  :git => 'https://github.com/puppetlabs/puppetlabs-apache'
+
+# Install puppetlabs/apache and track the 'docs_experiment' branch
+mod 'apache5',
+  :git    => 'https://github.com/puppetlabs/puppetlabs-apache',
+  :branch => 'docs_experiment'
+
+# Install puppetlabs/apache and track the 'docs_experiment' branch
+mod 'apache2',
+  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
+  :ref => 'docs_experiment'
+
+
+# Install puppetlabs/apache and pin to the '83401079' commit
+mod 'apache4',
+  :git    => 'https://github.com/puppetlabs/puppetlabs-apache',
+  :commit => '83401079053dca11d61945bd9beef9ecf7576cbf'
+
+# Install puppetlabs/apache and pin to the '0.9.0' tag
+mod 'apache3',
+  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
+  :tag => '0.9.0'
+
