@@ -2,7 +2,7 @@
 
 ## Unreleased
  * Fixes stack level issue when calling upstream
- 
+ * Adds ability to easily add upstream remote 
 ## v0.1.6
  * add dry run to deploy-mod
  

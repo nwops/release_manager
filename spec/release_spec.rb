@@ -26,6 +26,7 @@ describe Release do
         allow_any_instance_of(Changelog).to receive(:changelog_file).and_return(changelog_file)
         allow_any_instance_of(PuppetModule).to receive(:source).and_return('git@github.com:puppetlabs/puppet-debug')
         allow_any_instance_of(PuppetModule).to receive(:git_upstream_url).and_return('git@gitlab.com:puppetlabs/puppet-debug')
+        allow(release).to receive(:add_upstream_remote).and_return(true)
         expect(release).to receive(:exit)
         expect{release.check_requirements}.to output(/The upstream remote url does not match the source url in the metadata.json source/).to_stdout
       end

@@ -80,6 +80,7 @@ class Release
       exit 1
     rescue UpstreamSourceMatch
       puts "The upstream remote url does not match the source url in the metadata.json source".fatal
+      add_upstream_remote
       exit 1
     rescue InvalidMetadataSource
       puts "The module's metadata source is invalid, please fix it".fatal
@@ -118,19 +119,12 @@ class Release
   end
 
   def add_upstream_remote
-    if upstream != puppet_module.source
-      print "Ok to change your upstream remote from #{upstream}\n to #{puppet_module.source}? (y/n)"
+    answer = nil
+    while answer !~ /y|n/
+      print "Ok to change your upstream remote from #{puppet_module.upstream}\n to #{puppet_module.source}? (y/n)"
       answer = gets.downcase.chomp
-      if answer == 'y'
-	# something else we can't identify
-	if upstream != ''
-	`git remote rm upstream`
-	end
-	`git remote add upstream #{puppet_module.source}`
-      end
     end
-    value = `git fetch upstream`
-    puts value unless $?.success?
+    puppet_module.add_upstream_remote if answer == 'y'
   end
 
   def verbose?
@@ -179,7 +173,7 @@ EOF
       puppet_module.create_dev_branch
       value = release
       unless value
-	exit 1 
+	      exit 1
       end
       puts "Releasing Version #{version} to #{puppet_module.source}".green
       puts "Version #{version} has been released successfully".green 

@@ -36,6 +36,14 @@ class PuppetModule < WorkflowAction
    @metadata
  end
 
+ def add_upstream_remote
+   if upstream != source
+     `#{git_command} remote rm upstream`
+   end
+   `#{git_command} remote add upstream #{puppet_module.source}`
+   `#{git_command} fetch upstream`
+ end
+
  def git_upstream_url
    `#{git_command} config --get remote.upstream.url`.chomp
  end
@@ -53,7 +61,7 @@ class PuppetModule < WorkflowAction
  end
 
  def source
-   upstream || metadata['source']
+   metadata['source']
  end
 
  def pad_version_string(version_string)
@@ -135,7 +143,7 @@ class PuppetModule < WorkflowAction
  end
 
  def upstream
-   @upstream
+   @upstream ||= git_upstream_url
  end
 
  # ensures the dev branch has been created and is up to date
