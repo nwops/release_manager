@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.1.6
+ * add dry run to deploy-mod
+ 
 ## v0.1.5
  * Fixes an issue where the latest tag was not being selected correctly
 
