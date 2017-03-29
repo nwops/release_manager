@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.1.5
+ * Fixes an issue where the latest tag was not being selected correctly
+
 ## v0.1.4
  * Fixes #8 - upstream does not exist
  * Fixes #9 - bump changelog assumes changelog exists
