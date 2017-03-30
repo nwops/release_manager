@@ -62,7 +62,7 @@ class Puppetfile
 
   def find_mod(name)
     mod = modules[name] || modules.find{ |module_name, mod| mod.metadata[:git] =~ /#{name}/i }
-    raise InvalidModuleNameException "Invalid module module name #{name}, cannot locate in Puppetfile" unless mod
+    raise InvalidModuleNameException.new("Invalid module module name #{name}, cannot locate in Puppetfile") unless mod
     mod
   end
 
@@ -85,7 +85,7 @@ class Puppetfile
     end
   end
 
-  def to_puppetfile
+  def write_to_file
     File.write(puppetfile, to_s)
   end
 

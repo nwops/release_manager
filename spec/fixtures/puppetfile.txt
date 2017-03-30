@@ -23,3 +23,5 @@ mod 'apache3',
   :git => 'https://github.com/puppetlabs/puppetlabs-apache',
   :tag => '0.9.0'
 
+mod 'debug',
+  :git => 'git@github.com/nwops/puppet-debug'

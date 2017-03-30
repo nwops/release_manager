@@ -1,0 +1,14 @@
+{
+	"name": "r10k_control",
+	"version": "0.3.0",
+	"author": "Corey Osman",
+	"summary": "R10k Control repo",
+	"license": "Apache-2.0",
+	"source": "git@github.com/nwops/r10k-control.git",
+	"project_page": "https://github.com/nwops/r10k-control",
+	"issues_url": "https://github.com/nwops/r10k-control/issues",
+	"dependencies": [
+
+	]
+}
+

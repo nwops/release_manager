@@ -75,7 +75,7 @@ EOF
   end
   
   def puppetfile
-    @puppetfile || Puppetfile.new(puppetfile_path)
+    @puppetfile ||= Puppetfile.new(puppetfile_path)
   end
 
   def run
@@ -88,7 +88,7 @@ EOF
         puts "Would have just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green if options[:push]
       else
         puppetfile.write_version(puppet_module.name, latest_version)
-        puppetfile.to_puppetfile
+        puppetfile.write_to_file
         if options[:commit]
           puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")
           puts "Commited with message: bump #{puppet_module.name} to version #{latest_version}".green
@@ -102,7 +102,10 @@ EOF
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
     rescue PuppetfileNotFoundException
       puts "Cannot find the puppetfile at #{puppetfile_path}".red
-      exit -1 
+      exit -1
+    rescue InvalidModuleNameException => e
+      puts e.message
+      exit 1
     rescue ModNotFoundException
       puts "Invalid module path for #{mod_path}".red
       puts "This means that the metadata.json name field does not match\nthe module name found in the Puppetfile or this is not a puppet module".fatal
