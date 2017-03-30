@@ -2,14 +2,20 @@
 require_relative 'pmodule'
 require_relative 'errors'
 require 'json'
+require 'release_manager/puppet_module'
 
 class Puppetfile
-  attr_accessor :modules, :puppetfile, :data, :base_path
+  attr_accessor :modules, :puppetfile, :data, :base_path, :puppetmodule
   BUMP_TYPES = %w{patch minor major}
 
   # @param [String] puppetfile - the path to the puppetfile
   def initialize(puppetfile = 'Puppetfile')
     @puppetfile = puppetfile
+    @puppetmodule = PuppetModule.new(base_path)
+  end
+
+  def source
+    puppetmodule.source
   end
 
   def base_path

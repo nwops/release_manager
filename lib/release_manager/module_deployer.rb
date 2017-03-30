@@ -59,7 +59,7 @@ EOF
       opts.on('-u', '--push', 'Optionally, Push the changes to the remote') do |p|
         options[:push] = p
       end
-      opts.on('-r', '--remote REMOTE', 'Optionally, spaecify a remote name or url to push changes to') do |p|
+      opts.on('-r', '--remote REMOTE', 'Optionally, specify a remote name or url to push changes to') do |p|
         options[:remote] = p
       end
       opts.on('-d', 'Perform a dry run without making changes') do |p|
@@ -69,26 +69,33 @@ EOF
     m = ModuleDeployer.new(options)
     m.run
   end
+  
+  def control_repo_remote
+    @control_repo_remote ||= options[:remote] || puppetfile.source
+  end
+  
+  def puppetfile
+    @puppetfile || Puppetfile.new(puppetfile_path)
+  end
 
   def run
     begin
       check_requirements
-      pf = Puppetfile.new(puppetfile_path)
       puts "Found module #{puppet_module.name} with version: #{latest_version}".green
       puts "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
       if options[:dry_run]
         puts "Would have committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
-        puts "Would have just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green if options[:remote] && options[:push]
+        puts "Would have just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green if options[:push]
       else
-        pf.write_version(puppet_module.name, latest_version)
-        pf.to_puppetfile
+        puppetfile.write_version(puppet_module.name, latest_version)
+        puppetfile.to_puppetfile
         if options[:commit]
-          pf.commit("bump #{puppet_module.name} to version #{latest_version}")
-          puts "Committed with message: bump #{puppet_module.name} to version: #{latest_version}".green
+          puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")
+          puts "Commited with message: bump #{puppet_module.name} to version #{latest_version}".green
         end
         if options[:push]
-          pf.push(options[:remote], pf.current_branch) if options[:remote]
-          puts "Just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green
+          puppetfile.push(control_repo_remote, puppetfile.current_branch)
+          puts "Just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green
         end
       end
     rescue InvalidMetadataSource

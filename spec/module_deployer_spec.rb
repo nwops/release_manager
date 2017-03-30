@@ -55,7 +55,7 @@ describe ModuleDeployer do
       allow_any_instance_of(Puppetfile).to receive(:to_puppetfile).and_return(true)
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
-      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommitted with message: bump debug to version: v0.1.3\e[0m\n\e[32mJust pushed branch: dev to remote: git@github.com/nwops/something.git\e[0m\n"
+      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommited with message: bump debug to version v0.1.3\e[0m\n\e[32mJust pushed branch: dev to remote: git@github.com/nwops/something.git\e[0m\n"
       expect{deployer.run}.to output(output).to_stdout
     end
 
@@ -81,7 +81,7 @@ describe ModuleDeployer do
       allow_any_instance_of(Puppetfile).to receive(:to_puppetfile).and_return(true)
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
-      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommitted with message: bump debug to version: v0.1.3\e[0m\n"
+      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommited with message: bump debug to version v0.1.3\e[0m\n"
       expect{deployer.run}.to output(output).to_stdout
     end
 
