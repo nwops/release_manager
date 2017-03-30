@@ -179,6 +179,8 @@ EOF
       puts "Version #{version} has been released successfully".green 
       puts "Although this was a dry run so nothing really happended".green if dry_run?
       exit 0
+    rescue GitError
+      puts "There was an issue when running a git command".fatal
     rescue InvalidMetadataSource
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
     rescue ModNotFoundException 

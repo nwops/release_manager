@@ -147,10 +147,18 @@ class PuppetModule < WorkflowAction
 
  # ensures the dev branch has been created and is up to date
  def create_dev_branch
-  `#{git_command} checkout -b #{src_branch} #{upstream}/#{src_branch}` unless branch_exists?(src_branch)
-  # ensure we have updated our local branche
+   `#{git_command} fetch upstream`
+   raise GitError unless $?.success?
+   #puts "#{git_command} checkout -b #{src_branch} upstream/#{src_branch}"
+  `#{git_command} checkout -b #{src_branch} upstream/#{src_branch}` unless branch_exists?(src_branch)
+   raise GitError unless $?.success?
+   # ensure we have updated our local branch
+   #puts "#{git_command} checkout #{src_branch}"
   `#{git_command} checkout #{src_branch}`
-  `#{git_command} rebase "#{upstream}/#{src_branch}" `
+   raise GitError unless $?.success?
+   #puts "#{git_command} rebase upstream/#{src_branch}"
+  `#{git_command} rebase upstream/#{src_branch}`
+   raise GitError unless $?.success?
  end
 
  # @returns [String] - the source branch to push to
