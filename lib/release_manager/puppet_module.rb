@@ -40,8 +40,7 @@ class PuppetModule < WorkflowAction
    if upstream != source
      `#{git_command} remote rm upstream`
    end
-   `#{git_command} remote add upstream #{puppet_module.source}`
-   `#{git_command} fetch upstream`
+   `#{git_command} remote add upstream #{source}`
  end
 
  def git_upstream_url

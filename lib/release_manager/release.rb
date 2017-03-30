@@ -73,8 +73,8 @@ class Release
 
   def check_requirements
     begin
-      Changelog.check_requirements(puppet_module.mod_path)
       PuppetModule.check_requirements(puppet_module.mod_path)
+      Changelog.check_requirements(puppet_module.mod_path)
     rescue NoUnreleasedLine
       puts "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry".fatal
       exit 1
@@ -83,7 +83,7 @@ class Release
       add_upstream_remote
       exit 1
     rescue InvalidMetadataSource
-      puts "The module's metadata source is invalid, please fix it".fatal
+      puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
       exit 1
     rescue NoChangeLogFile
       puts "CHANGELOG.md does not exist, please create one".fatal
@@ -95,7 +95,6 @@ class Release
   # currently this must be done manually by a release manager
   # 
   def release
-    check_requirements
     # updates the metadata.js file to the next version
     puts bump
     # updates the changelog to the next version based on the metadata file
@@ -121,7 +120,7 @@ class Release
   def add_upstream_remote
     answer = nil
     while answer !~ /y|n/
-      print "Ok to change your upstream remote from #{puppet_module.upstream}\n to #{puppet_module.source}? (y/n)"
+      print "Ok to change your upstream remote from #{puppet_module.upstream}\n to #{puppet_module.source}? (y/n): "
       answer = gets.downcase.chomp
     end
     puppet_module.add_upstream_remote if answer == 'y'
@@ -170,6 +169,7 @@ EOF
 
   def run
     begin
+      check_requirements
       puppet_module.create_dev_branch
       value = release
       unless value
