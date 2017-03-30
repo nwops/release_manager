@@ -53,8 +53,8 @@ class PModule
   end
 
   def pin_version(v)
-    metadata.delete('ref')
-    metadata.delete('branch')
+    metadata.delete(:ref)
+    metadata.delete(:branch)
     metadata[:tag] = v
   end
 end
