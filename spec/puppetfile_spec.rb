@@ -5,6 +5,10 @@ describe Puppetfile do
     File.join(fixtures_dir, 'r10k-control')
   end
 
+  let(:mod) do
+    PModule.new('apache', { git: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
+  end
+
   let(:upstream) { "git@github.com:nwops/r10k-control" }
 
   let(:puppetfile) do
@@ -35,6 +39,13 @@ describe Puppetfile do
     expect(puppetfile.to_s).to match(/0\.0\.8/)
     expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s ).and_return(true)
     puppetfile.write_to_file
+  end
+
+  it 'writes version to the module' do
+    allow(puppetfile).to receive(:find_mod).and_return(mod)
+    expect(puppetfile.write_version('apache', 'v0.0.8')).to eq('v0.0.8')
+    expect(mod.metadata.key?(:branch)).to eq(false)
+    expect(mod.metadata.key?(:tag)).to eq(true)
   end
 
 end

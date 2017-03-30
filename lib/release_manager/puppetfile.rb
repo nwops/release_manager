@@ -68,7 +68,7 @@ class Puppetfile
 
   def write_version(mod_name, version)
     mod = find_mod(mod_name)
-    mod.pin_version = version
+    mod.pin_version(version)
   end
 
   def bump(mod_name, type = 'patch')
