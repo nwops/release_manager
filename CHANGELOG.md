@@ -1,5 +1,9 @@
 # Release Manager
 
+## v0.1.8
+ * Fix pinning of version to puppetfile
+ * adds more testing
+ 
 ## v0.1.7
  * Adds more tests
  * Fixes typos
