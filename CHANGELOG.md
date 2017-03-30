@@ -1,6 +1,9 @@
 # Release Manager
 
-## Unreleased
+## v0.1.7
+ * Adds more tests
+ * Fixes typos
+ * Fixes issue with push and commit during deployment
  * Fixes stack level issue when calling upstream
  * Adds ability to easily add upstream remote 
 ## v0.1.6
