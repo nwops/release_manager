@@ -69,12 +69,17 @@ EOF
 
   # @returns [Array[String]]
   def changelog_lines
-     @changelog_lines ||= File.readlines(changelog_file)
+    @changelog_lines ||= File.readlines(changelog_file)
   end
 
   # @returns [Integer] line number of where the word unreleased is located
-  def unreleased_index 
-    linenum = changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Unreleased/i }
+  def unreleased_index
+    begin
+      linenum = changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Unreleased/i }
+    rescue ArgumentError => e
+      puts "Error with CHANGELOG.md #{e.message}".fatal
+      exit 1
+    end
     raise NoUnreleasedLine unless linenum
     linenum
   end
