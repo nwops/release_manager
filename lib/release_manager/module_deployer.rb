@@ -82,10 +82,14 @@ EOF
       else
         pf.write_version(puppet_module.name, latest_version)
         pf.to_puppetfile
-        pf.commit("bump #{puppet_module.name} to version #{latest_version}") if options[:commit]
-        puts "Committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
-        pf.push(options[:remote], pf.current_branch) if options[:remote] && options[:push]
-        puts "Just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green
+        if options[:commit]
+          pf.commit("bump #{puppet_module.name} to version #{latest_version}")
+          puts "Committed with message: bump #{puppet_module.name} to version: #{latest_version}".green
+        end
+        if options[:push]
+          pf.push(options[:remote], pf.current_branch) if options[:remote]
+          puts "Just pushed branch: #{pf.current_branch} to remote: #{options[:remote]}".green
+        end
       end
     rescue InvalidMetadataSource
       puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red

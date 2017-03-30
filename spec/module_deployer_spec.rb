@@ -47,6 +47,7 @@ describe ModuleDeployer do
     end
 
     it 'can run' do
+      allow_any_instance_of(PuppetModule).to receive(:source).and_return(options[:remote])
       allow_any_instance_of(Puppetfile).to receive(:current_branch).and_return('dev')
       allow_any_instance_of(Puppetfile).to receive(:commit).and_return(true)
       allow_any_instance_of(Puppetfile).to receive(:push).and_return(true)
@@ -57,6 +58,57 @@ describe ModuleDeployer do
       output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommitted with message: bump debug to version: v0.1.3\e[0m\n\e[32mJust pushed branch: dev to remote: git@github.com/nwops/something.git\e[0m\n"
       expect{deployer.run}.to output(output).to_stdout
     end
+
+  end
+
+  describe 'real run without push' do
+    let(:options) do
+      {
+          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          modulepath: File.join(fixtures_dir, 'puppet-debug'),
+          commit: true,
+          push: false,
+          remote: 'git@github.com/nwops/something.git',
+          dry_run: false
+      }
+    end
+
+    it do
+      allow_any_instance_of(Puppetfile).to receive(:current_branch).and_return('dev')
+      allow_any_instance_of(Puppetfile).to receive(:commit).and_return(true)
+      allow_any_instance_of(Puppetfile).to receive(:push).and_return(true)
+      allow_any_instance_of(Puppetfile).to receive(:write_version).and_return(true)
+      allow_any_instance_of(Puppetfile).to receive(:to_puppetfile).and_return(true)
+      allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
+      allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
+      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mCommitted with message: bump debug to version: v0.1.3\e[0m\n"
+      expect{deployer.run}.to output(output).to_stdout
+    end
+
+  end
+
+  describe 'real run without push and commit' do
+    let(:options) do
+      {
+          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          modulepath: File.join(fixtures_dir, 'puppet-debug'),
+          commit: false,
+          push: false,
+          remote: 'git@github.com/nwops/something.git',
+          dry_run: false
+      }
+    end
+
+    it do
+      allow_any_instance_of(Puppetfile).to receive(:current_branch).and_return('dev')
+      allow_any_instance_of(Puppetfile).to receive(:write_version).and_return(true)
+      allow_any_instance_of(Puppetfile).to receive(:to_puppetfile).and_return(true)
+      allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
+      allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
+      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n"
+      expect{deployer.run}.to output(output).to_stdout
+    end
+
   end
 
   describe 'dry run' do

@@ -35,14 +35,9 @@ describe Release do
         allow_any_instance_of(Changelog).to receive(:changelog_file).and_return(changelog_file)
         allow_any_instance_of(PuppetModule).to receive(:source).and_return('https://www.github.com/puppet.git')
         expect(release).to receive(:exit)
-        expect{release.check_requirements}.to output(/The module\'s metadata source is invalid, please fix it/).to_stdout
+        expect{release.check_requirements}.to output(/source field must be a git url/).to_stdout
       end
     end
 
-    describe 'valid metadata' do
-
-    end
   end
-
-
 end
