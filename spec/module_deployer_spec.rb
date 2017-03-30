@@ -49,7 +49,6 @@ describe ModuleDeployer do
     it 'creates file' do
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
-      #expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s ).and_return(true)
       expect(deployer.puppetfile).to receive(:write_to_file)
       expect{deployer.run}.to_not raise_error
     end
