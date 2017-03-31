@@ -54,7 +54,7 @@ class Release
 
   def bump_log 
     return "Would have just bumped the CHANGELOG to version #{version}" if dry_run?
-    log = Changelog.new(puppet_module.mod_path, version, {:commit => true})
+    log = Changelog.new(puppet_module.path, version, {:commit => true})
     log.run
   end
 
@@ -73,8 +73,8 @@ class Release
 
   def check_requirements
     begin
-      PuppetModule.check_requirements(puppet_module.mod_path)
-      Changelog.check_requirements(puppet_module.mod_path)
+      PuppetModule.check_requirements(puppet_module.path)
+      Changelog.check_requirements(puppet_module.path)
     rescue NoUnreleasedLine
       puts "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry".fatal
       exit 1

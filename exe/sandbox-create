@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'release_manager'
+require 'release_manager/cli/sandbox_create_cli'
+
+# we also need to allow the user to list all the modules the sandbox currently controls
+# in addition to allowing the user to update the list of modules
+# sandbox-deploy
+# sandbox-show or sandbox-list
+# sandbox-update
+# sandbox-create
+#ENV['R10K_CONTROL_URL']
+ReleaseManager::SandboxCreateCli.run

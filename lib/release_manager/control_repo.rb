@@ -1,20 +1,27 @@
-require 'puppetfile'
+require 'release_manager/puppetfile'
 require 'rugged'
+require 'release_manager/git/utilites'
 
 class ControlRepo
-  attr_accessor :path, :repo
+  attr_accessor :path, :repo, :url
 
-  def initialize(path)
+  include ReleaseManager::Git::Utilities
+  include ReleaseManager::Logger
+
+  def initialize(path, url = nil)
     @path = path
+    @url = url
+  end
+
+  # @return [ControlRepo] - creates a new control repo object and clones the url unless already cloned
+  def self.create(path, url, branch = 'dev')
+    c = ControlRepo.new(path, url)
+    c.clone(url, path)
+    c
   end
 
   def repo
-    @repo ||= Rugged::Repository.new(path)
-  end
-
-  def create_branch(name)
-    repo.branches.create(name)
-    repo.checkout(name)
+    @repo ||= ::Rugged::Repository.new(path)
   end
 
   def puppetfile

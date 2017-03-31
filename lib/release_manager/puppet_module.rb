@@ -1,16 +1,26 @@
 require 'json'
-require_relative 'errors'
+require 'release_manager/errors'
 require 'release_manager/workflow_action'
+require 'release_manager/git/utilites'
+require 'rugged'
+
 
 class PuppetModule < WorkflowAction
- attr_reader :name, :metadata_file, :mod_path, :version, :upstream
+ attr_reader :name, :metadata_file, :path, :version, :upstream
  attr_writer :version, :source
- 
+
+ include ReleaseManager::Git::Utilities
+ include ReleaseManager::Logger
+
  def initialize(mod_path, upstream = nil)
    raise ModNotFoundException if mod_path.nil?
-   @mod_path = mod_path
+   @path = mod_path
    @upstream = upstream 
    @metadata_file = File.join(mod_path, 'metadata.json')
+ end
+
+ def repo
+   @repo ||= Rugged::Repository.new(path)
  end
 
  def self.check_requirements(path)
@@ -94,7 +104,7 @@ class PuppetModule < WorkflowAction
  end
 
  def tag_module
-   `git --git-dir=#{mod_path}/.git tag -m 'v#{version}' v#{version}`
+   `git --git-dir=#{path}/.git tag -m 'v#{version}' v#{version}`
  end
 
  def bump_patch_version
@@ -138,7 +148,7 @@ class PuppetModule < WorkflowAction
  end
 
  def git_command
-   @git_command ||= "git --work-tree=#{mod_path} --git-dir=#{mod_path}/.git"
+   @git_command ||= "git --work-tree=#{path} --git-dir=#{path}/.git"
  end
 
  def upstream
@@ -174,11 +184,18 @@ class PuppetModule < WorkflowAction
  def commit_metadata
    to_metadata_file
    `#{git_command} add #{metadata_file}`
-   `#{git_command} commit -n -m "[Autobot] - bump version to #{version}"`
+   `#{git_command} commit -n -m "[ReleaseManager] - bump version to #{version}"`
  end
 
  def to_metadata_file
    File.write(metadata_file, to_s)
+ end
+
+ # @return [ControlRepo] - creates a new control repo object and clones the url unless already cloned
+ def self.create(path, url, branch = 'master')
+   c = PuppetModule.new(path, url)
+   c.clone(url, path)
+   c
  end
 
 end

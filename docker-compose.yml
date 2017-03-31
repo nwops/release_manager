@@ -11,3 +11,20 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+
+  web:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://web'
+    ports:
+      - '8000:80'
+      - '4433:443'
+      - '2201:22'
+    volumes:
+      - './srv/gitlab/config:/etc/gitlab'
+      - './srv/gitlab/logs:/var/log/gitlab'
+      - './srv/gitlab/data:/var/opt/gitlab'
+
+# setup ssh key in gitlab

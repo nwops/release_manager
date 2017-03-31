@@ -1,5 +1,8 @@
 # Release Manager
-
+## v0.2.0
+ * adds the ability to auto generate a complete r10k sandbox
+ * adds gitlab adapter
+ * adds rugged git dependency
 ## v0.1.8
  * Fix pinning of version to puppetfile
  * adds more testing

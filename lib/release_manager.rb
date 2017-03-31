@@ -4,6 +4,7 @@ require "release_manager/release"
 require "release_manager/changelog"
 require 'release_manager/logger'
 require 'release_manager/workflow_action'
+require 'release_manager/sandbox'
 
 class String
   def colorize(color_code)
@@ -29,3 +30,4 @@ end
 module ReleaseManager
 
 end
+

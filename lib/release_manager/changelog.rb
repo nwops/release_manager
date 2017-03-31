@@ -106,7 +106,7 @@ EOF
 
   def create_commit
     `#{git_command} add #{changelog_file}`
-    puts `#{git_command} commit -m "[Autobot] - bump changelog to version #{version}"`
+    puts `#{git_command} commit -m "[ReleaseManager] - bump changelog to version #{version}"`
   end
 
   # checks to make sure the unreleased line is valid, and the file exists

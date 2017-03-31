@@ -1,5 +1,5 @@
 class ControlMod
-  attr_reader :name, :metadata
+  attr_reader :name, :metadata, :repo
   attr_accessor :version
 
   def initialize(name, args)
@@ -7,8 +7,16 @@ class ControlMod
     @metadata = args.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
   end
 
+  def repo
+    git_url
+  end
+
   def git_url
-    metadata[:repo]
+    metadata[:git]
+  end
+
+  def branch
+    metadata[:branch]
   end
 
   def to_json(state = nil)
@@ -61,4 +69,15 @@ class ControlMod
     metadata.delete(:branch)
     metadata[:tag] = v
   end
+
+  def pin_branch(name)
+    metadata[:branch] = name
+    metadata.delete(:ref)
+    metadata.delete(:tag)
+  end
+
+  def pin_url(src)
+    metadata[:git] = src
+  end
+
 end

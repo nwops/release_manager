@@ -8,3 +8,6 @@ class NoChangeLogFile < Exception; end
 class UpstreamSourceMatch < Exception; end
 class GitError < Exception; end
 class RepoNotFound < Exception; end
+class InvalidModule < Exception; end
+class InvalidToken < Exception; end
+class InvalidSshkey < Exception; end
