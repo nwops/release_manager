@@ -1,0 +1,13 @@
+version: '2'
+services:
+  app:
+    image: nwops/release_manager
+    build: .
+    entrypoint:
+      - bash
+    environment:
+      GEM_HOME: '/home/appuser/.gems'
+      BUNDLE_PATH: '/home/appuser/.bundle'
+    working_dir: /app
+    volumes:
+      - .:/app
