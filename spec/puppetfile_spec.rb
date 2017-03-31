@@ -6,7 +6,7 @@ describe Puppetfile do
   end
 
   let(:mod) do
-    PModule.new('apache', { git: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
+    ControlMod.new('apache', {repo: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
   end
 
   let(:upstream) { "git@github.com:nwops/r10k-control" }

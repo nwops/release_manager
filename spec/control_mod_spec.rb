@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe PModule do
+describe ControlMod do
   let(:path) do
     File.join(fixtures_dir, 'puppet-debug')
   end
@@ -10,11 +10,11 @@ describe PModule do
   end
 
   let(:mod) do
-    PModule.new('apache', { git: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
+    ControlMod.new('apache', {repo: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
   end
 
   it 'works' do
-    expect(mod).to be_a(PModule)
+    expect(mod).to be_a(ControlMod)
   end
 
   it 'can bump version' do

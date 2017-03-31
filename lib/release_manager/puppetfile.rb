@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require_relative 'pmodule'
+require_relative 'control_mod'
 require_relative 'errors'
 require 'json'
 require 'release_manager/puppet_module'
@@ -60,8 +60,22 @@ class Puppetfile
     instance
   end
 
+  # @param Array[String] names - find all mods with the following names
+  # @return Hash[String, ControlMod] - returns the pupppet modules in a hash
+  def find_mods(names)
+    mods = {}
+    names.each do | mod_name |
+      m = find_mod(mod_name)
+      mods[m.name] = m
+    end
+    mods
+  end
+
+  # @param [String] name - the name of the mod you wish to find in the puppetfile
+  # @return ControlMod - a ControlMod object
   def find_mod(name)
-    mod = modules[name] || modules.find{ |module_name, mod| mod.metadata[:git] =~ /#{name}/i }
+    mod_name = name.strip.downcase
+    mod = modules[mod_name] || modules.find{ |module_name, mod| mod.metadata[:repo] =~ /#{mod_name}/i }
     raise InvalidModuleNameException.new("Invalid module module name #{name}, cannot locate in Puppetfile") unless mod
     mod
   end
@@ -104,7 +118,7 @@ class Puppetfile
   end
 
   def mod(name, *args)
-    @modules[name] = PModule.new(name, args.flatten.first)
+    @modules[name] = ControlMod.new(name, args.flatten.first)
   end
 
 end

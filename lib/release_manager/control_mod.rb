@@ -1,10 +1,14 @@
-class PModule
+class ControlMod
   attr_reader :name, :metadata
   attr_accessor :version
 
   def initialize(name, args)
     @name = name
     @metadata = args.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+  end
+
+  def git_url
+    metadata[:repo]
   end
 
   def to_json(state = nil)
