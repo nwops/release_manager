@@ -1,25 +1,26 @@
 require 'puppetfile'
-require 'git'
+require 'rugged'
 
 class ControlRepo
-  attr_accessor :path, :git
+  attr_accessor :path, :repo
 
   def initialize(path)
     @path = path
   end
 
-  def git
-    @git ||= Git.open(path, :log => Logger.new(STDOUT))
+  def repo
+    @repo ||= Rugged::Repository.new(path)
   end
 
   def create_branch(name)
-    git.branch(name).checkout
+    repo.branches.create(name)
+    repo.checkout(name)
   end
 
   def puppetfile
     unless @puppetfile
       @puppetfile = Puppetfile.new(File.join(path, 'Puppetfile'))
-      @puppetfile.base_path = path)
+      @puppetfile.base_path = path
     end
     @puppetfile
   end
