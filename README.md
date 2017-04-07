@@ -112,8 +112,8 @@ Summary: Creates a new r10k sandbox by forking and creating a new branch on r10k
          for each module, updates the r10k-control Puppetfile to use those forks and branches
          and pushes the branch to the upstream r10k-control.
 
-Example: sandbox-create -n my_sandbox -m "roles,profiles,developer" -t 3isdfasjio23923
-Example: sandbox-create -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2, p2ksdafs,devops,ci_runner" -t 3isdfasjio23923
+Example: sandbox-create -n my_sandbox -m "roles,profiles,developer"
+Example: sandbox-create -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2, p2ksdafs,devops,ci_runner" 
 
 
 Note: If you already have any of these modules cloned, this script will attempt to update those modules
