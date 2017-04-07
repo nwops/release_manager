@@ -1,6 +1,67 @@
+```shell
+
+__________       .__                                   _____                                             
+\______   \ ____ |  |   ____ _____    ______ ____     /     \ _____    ____ _____     ____   ___________ 
+ |       _// __ \|  | _/ __ \\__  \  /  ___// __ \   /  \ /  \\__  \  /    \\__  \   / ___\_/ __ \_  __ \
+ |    |   \  ___/|  |_\  ___/ / __ \_\___ \\  ___/  /    Y    \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
+ |____|_  /\___  >____/\___  >____  /____  >\___  > \____|__  (____  /___|  (____  /\___  / \___  >__|   
+        \/     \/          \/     \/     \/     \/          \/     \/     \/     \//_____/      \/       
+```
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [ReleaseManager](#releasemanager)
+  - [Installation](#installation)
+    - [Install directly from source](#install-directly-from-source)
+  - [The workflow problem](#the-workflow-problem)
+    - [R10k Sandbox Creation Steps (the hard way)](#r10k-sandbox-creation-steps-the-hard-way)
+    - [R10k Sandbox Creation steps (the easy way)](#r10k-sandbox-creation-steps-the-easy-way)
+  - [Usage](#usage)
+    - [sandbox-create](#sandbox-create)
+    - [release-mod](#release-mod)
+    - [deploy-mod](#deploy-mod)
+    - [bump-changelog](#bump-changelog)
+  - [Configuration Settings](#configuration-settings)
+    - [Sandbox-create environment variables](#sandbox-create-environment-variables)
+  - [Development](#development)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # ReleaseManager
 
 This gem provides workflow automations around releasing and deploying puppet modules within r10k environments.
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'release_manager'
+```
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install release_manager
+    
+### Install directly from source
+If you don't have access to a gem server you can use the `specific_install` gem.  This will install the latest version
+directly from source.
+
+```
+gem install specific_install  # unless already installed
+gem specific_install <git url to release manager>  
+
+ie. gem specific_install git@github.com/nwops/release_manager.git
+```
+
 
 ## The workflow problem
 R10k allows us to create a puppet environment for each branch on the r10k-control repository. This makes isolating code deployments
@@ -34,33 +95,6 @@ Additionally there are other commands that help with the release and deploy proc
 
 ### R10k Sandbox Creation steps (the easy way)
 `sandbox-create -n my_sandbox --modules='roles,profiles,hieradata,sqlserver'`  
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'release_manager'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install release_manager
-    
-### Install directly from source
-If you don't have access to a gem server you can use the `specific_install` gem.  This will install the latest version
-directly from source.
-
-```
-gem install specific_install  # unless already installed
-gem specific_install <git url to release manager>  
-
-ie. gem specific_install git@github.com/nwops/release_manager.git
-```
 
 ## Usage
 
@@ -198,15 +232,15 @@ If using the `release-mod` command there is no need to run the `bump-changelog`c
 The following environment variables will automatically set required parameters and defaults.  It is suggested you put 
 this in your shell script like .bash_profile or .zprofile
 
-### Sandbox-create
+### Sandbox-create environment variables
 
-GITLAB_API_ENDPOINT - The api path to the gitlab server
+GITLAB_API_ENDPOINT - The api path to the gitlab server (ie. https://gitlab.com/api/v3)
 
 GITLAB_API_PRIVATE_TOKEN - The gitlab user api token 
 
 DEFAULT_MODULES - The default set of modules to use when creating a sandbox  (ie. hieradata)
 
-R10K_REPO_URL - The git repo url to r10k-control (ie. git@gitlab.com/nwops/r10k-control.git)
+R10K_REPO_URL - The git repo url to r10k-control (ie. git@gitlab.com:nwops/r10k-control.git)
 
 DEFAULT_MEMBERS - The default members each forked project should add permissions to (ie, 'ci_runner', 'r10k_user')
 

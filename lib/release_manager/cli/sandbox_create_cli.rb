@@ -1,7 +1,16 @@
 require 'release_manager/sandbox'
-
 module ReleaseManager
   class SandboxCreateCli
+
+    def self.gitlab_server
+      if ENV['GITLAB_API_ENDPOINT']
+        if data = ENV['GITLAB_API_ENDPOINT'].match(/(https?\:\/\/[\w\.]+)/)
+          return data[1]
+        end
+      end
+      'https://gitlab.com'
+    end
+
     def self.run
       options = {}
       OptionParser.new do |opts|
@@ -14,13 +23,38 @@ Summary: Creates a new r10k sandbox by forking and creating a new branch on r10k
          for each module, updates the r10k-control Puppetfile to use those forks and branches
          and pushes the branch to the upstream r10k-control.
 
-Example: #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" -t 3isdfasjio23923
-Example: #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2, p2ksdafs,devops,ci_runner" -t 3isdfasjio23923
-
 
 Note: If you already have any of these modules cloned, this script will attempt to update those modules
       using git fetch and git checkout -b sandbox_name upstream/master.  So this should not destroy anything.
 
+Configuration:
+
+This script uses the following environment variables to automatically set some options, please ensure 
+they exist in your shell environment.  You can set an environment variable in the shell or define 
+in your shell startup files.
+
+Shell:  export VARIABLE_NAME=value
+
+R10K_REPO_URL            - The git repo url to r10k-control (ie. git@gitlab.com:devops/r10k-control.git)
+GITLAB_API_ENDPOINT      - The api path to the gitlab server  (ie. https://gitlab_server/api/v3)
+                           replace gitlab_server with your server hostname
+GITLAB_API_PRIVATE_TOKEN - The gitlab user api token.  
+                           You can get a token here (#{gitlab_server}/profile/personal_access_tokens, 
+                           Ensure api box is checked.
+DEFAULT_MODULES          - The default set of modules to fork use when 
+                           a sandbox (ie. export DEFAULT_MODULES='hieradata, roles')
+
+DEFAULT_MEMBERS          - The default members each forked project should add permissions
+                           to ( ie, DEFAULT_MEMBERS='ci_runner,r10k_user' )
+
+If your gitlab server has a invalid certificate you can set the following variable to "fix" that trust issue.
+export GITLAB_API_HTTPARTY_OPTIONS="{verify: false}"
+
+Examples:
+  #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" 
+  #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2,devops,ci_runner"
+
+Options:
         EOF
         )
         opts.on('--members DEFAULT_MEMBERS', "A comman seperated list of members to add to forked projects") do |m|
@@ -68,7 +102,7 @@ Note: If you already have any of these modules cloned, this script will attempt 
 
       unless options[:r10k_repo_url]
         puts "Please set the R10K_REPO_URL environment variable or use the --control-url option".fatal
-        puts "Example: export R10K_REPO_URL='git@gitlab.com/devops/r10k-control.git'".fatal
+        puts "Example: export R10K_REPO_URL='git@gitlab.com:devops/r10k-control.git'".fatal
         exit 1
       end
       unless options[:sandbox_name]
