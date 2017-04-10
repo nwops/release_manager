@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     release_manager (0.2.0)
-      gitlab
+      gitlab (~> 3.7.0)
       rugged
 
 GEM
@@ -60,7 +60,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler
-  gitlab
+  gitlab (~> 3.7.0)
   pry
   rake
   release_manager!
