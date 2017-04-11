@@ -182,7 +182,6 @@ class Sandbox
   def check_requirements
     begin
       vcs.add_ssh_key
-      modules  # validates modules exist
     rescue InvalidModuleNameException => e
       logger.error(e.message)
       exit 1
