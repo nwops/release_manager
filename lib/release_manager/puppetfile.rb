@@ -47,6 +47,7 @@ class Puppetfile
     @data
   end
 
+  # @return [Array[ControlMod]] - a list of control mod objects
   def modules
     unless @modules
       @modules = {}
@@ -77,7 +78,7 @@ class Puppetfile
   # @return ControlMod - a ControlMod object
   def find_mod(name)
     mod_name = name.strip.downcase
-    mod = modules[mod_name] || modules.find{ |module_name, mod| mod.metadata[:repo] =~ /#{mod_name}/i }
+    mod = modules[mod_name] || modules.find{ |module_name, mod| mod.repo =~ /#{mod_name}/i }
     raise InvalidModuleNameException.new("Invalid module name #{name}, cannot locate in Puppetfile") unless mod
     mod
   end
@@ -87,6 +88,10 @@ class Puppetfile
     mod.pin_version(version)
   end
 
+  # @param [String] mod_name - the module name found in the puppetfile
+  # @param [String] src - the git url to the source
+  # @option [String] branch - the branch name to pin to if provided
+  # @return [ControlMod]
   def write_source(mod_name, src, branch = nil)
     mod = find_mod(mod_name)
     mod.pin_url(src)

@@ -48,4 +48,20 @@ describe Puppetfile do
     expect(mod.metadata.key?(:tag)).to eq(true)
   end
 
+  it 'writes source to the module' do
+    allow(puppetfile).to receive(:find_mod).and_return(mod)
+    updated_mod = puppetfile.write_source('apache', 'git@github.com:puppetlabs/puppetlabs-apache')
+    expect(updated_mod.repo).to eq('git@github.com:puppetlabs/puppetlabs-apache')
+  end
+
+  it 'create file with source' do
+    before = puppetfile.find_mod('apache1').version
+    puppetfile.write_version('apache1', '0.0.8')
+    puppetfile.write_source('apache1', 'git@github.com:puppetlabs/puppetlabs-apache' )
+    after = puppetfile.find_mod('apache1').version
+    expect(puppetfile.to_s).to match(%r{git@github.com:puppetlabs/puppetlabs-apache})
+    expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s ).and_return(true)
+    puppetfile.write_to_file
+  end
+
 end

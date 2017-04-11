@@ -27,11 +27,9 @@ class ModuleDeployer
 
   def check_requirements
     raise PuppetfileNotFoundException unless File.exists?(puppetfile_path)
-    raise ModNotFoundException if !mod_path || !File.exists?(mod_path)
+    raise ModNotFoundException if !mod_path || ! File.exists?(mod_path)
   end
-  
 
-  
   def control_repo_remote
     @control_repo_remote ||= options[:remote] || puppetfile.source
   end
@@ -50,6 +48,7 @@ class ModuleDeployer
         puts "Would have just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green if options[:push]
       else
         puppetfile.write_version(puppet_module.name, latest_version)
+        puppetfile.write_source(puppet_module.name, puppet_module.source)
         puppetfile.write_to_file
         if options[:commit]
           puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")
