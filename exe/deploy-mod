@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
 require 'release_manager'
+require 'release_manager/cli/deploy_mod_cli'
 
-ModuleDeployer.run
+ReleaseManager::DeployModCli.run

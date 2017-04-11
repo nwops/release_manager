@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
 require 'release_manager'
+require 'release_manager/cli/release_mod_cli'
 
-Release.run
+ReleaseManager::ReleaseModCli.run
