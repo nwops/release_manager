@@ -26,9 +26,10 @@ module ReleaseManager
         opts.on('-c', '--commit', 'Optionally, Commit the Puppetfile change') do |p|
           options[:commit] = p
         end
-        opts.on('-u', '--push', 'Optionally, Push the changes to the remote') do |p|
-          options[:push] = p
-        end
+        # removing this option as it seems a little dangerous for now
+        # opts.on('-u', '--push', 'Optionally, Push the changes to the remote') do |p|
+        #   options[:push] = p
+        # end
         opts.on('-r', '--remote REMOTE', 'Optionally, specify a remote name or url to push changes to') do |p|
           options[:remote] = p
         end
