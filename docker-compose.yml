@@ -8,6 +8,10 @@ services:
     environment:
       GEM_HOME: '/home/appuser/.gems'
       BUNDLE_PATH: '/home/appuser/.bundle'
+      GITLAB_API_ENDPOINT: 'http://web/api/v3'
+      # the token may change so this really needs to be more dynamic
+      GITLAB_API_PRIVATE_TOKEN: 'A_zJJfgE8P-8mFGK2_r9'
+      R10K_REPO_URL: "git@web:devops/control-repo.git"
     working_dir: /app
     volumes:
       - .:/app
