@@ -30,9 +30,9 @@ module ReleaseManager
         # opts.on('-u', '--push', 'Optionally, Push the changes to the remote') do |p|
         #   options[:push] = p
         # end
-        opts.on('-r', '--remote REMOTE', 'Optionally, specify a remote name or url to push changes to') do |p|
-          options[:remote] = p
-        end
+        # opts.on('-r', '--remote REMOTE', 'Optionally, specify a remote name or url to push changes to') do |p|
+        #   options[:remote] = p
+        # end
         opts.on('-d', 'Perform a dry run without making changes') do |p|
           options[:dry_run] = p
         end
