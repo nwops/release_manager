@@ -1,4 +1,11 @@
 # Release Manager
+## v0.2.1
+ * Improves docker setup
+ * Removes ability to push upon deploying module
+ * Fixes issue with git source not updating when deploying module
+ * Refactors cli into individual files
+ * Removes checking of modules before sandbox creation
+ 
 ## v0.2.0
  * adds the ability to auto generate a complete r10k sandbox
  * adds gitlab adapter
