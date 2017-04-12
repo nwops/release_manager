@@ -2,7 +2,7 @@
 #
 # setup ssh-agent
 #
-
+export PATH=~/.gems/bin:$PATH
 
 # set environment variables if user's agent already exists
 [ -z "$SSH_AUTH_SOCK" ] && SSH_AUTH_SOCK=$(ls -l /tmp/ssh-*/agent.* 2> /dev/null | grep $(whoami) | awk '{print $9}')

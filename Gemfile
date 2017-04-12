@@ -9,5 +9,6 @@ group :test do
   gem 'rake'
   gem 'rspec'
   gem 'bundler'
-  gem 'release_manager', path: '.'
+  # when docker compiles this it cannot find release manager until we mount the volume
+  gem 'release_manager', path: '.' if File.exists?(File.join('release_manager.gemspec'))
 end
