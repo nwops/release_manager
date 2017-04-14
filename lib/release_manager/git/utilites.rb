@@ -6,7 +6,7 @@ module ReleaseManager
 
       def fetch(remote_name = 'upstream')
         remote = repo.remotes[remote_name]
-        logger.info("Fetching upstream from #{remote.url}")
+        logger.info("Fetching remote #{remote_name} from #{remote.url}")
         remote.fetch({
                          #progress: lambda { |output| puts output },
                          credentials: credentials.call(remote.url)
@@ -73,6 +73,7 @@ module ReleaseManager
       end
 
       # we should be creating the branch from upstream
+      # @return [Rugged::Branch]
       def create_branch(name, target = 'upstream/master')
         unless branch_exist?(name)
           logger.info("Creating branch: #{name} for #{path}")
@@ -82,6 +83,29 @@ module ReleaseManager
         end
       end
 
+      # deletes the branch with the given name
+      def delete_branch(name)
+        repo.branches.delete(name)
+      end
+
+      # @param [String] remote_name - the remote name to push the branch to
+      def push_branch(remote_name, branch)
+        remote = repo.remotes[remote_name]
+        refs = [repo.branches[branch].canonical_name]
+        logger.info("Pushing branch #{branch} to remote #{remote.url}")
+        remote.push(refs, credentials: credentials)
+      end
+
+      # push all the tags to the remote
+      # @param [String] remote_name - the remote name to push tags to
+      def push_tags(remote_name)
+        remote = repo.remotes[remote_name]
+        refs = repo.tags.map(&:canonical_name)
+        logger.info("Pushing tags to remote #{remote.url}")
+        remote.push(refs, credentials: credentials)
+      end
+
+      # @return [String] the name of the current branch
       def current_branch
         repo.head.name.sub(/^refs\/heads\//, '')
       end

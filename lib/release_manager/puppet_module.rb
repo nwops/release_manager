@@ -177,8 +177,9 @@ class PuppetModule < WorkflowAction
    r10k_module? ? 'dev' : 'master'
  end
 
- def push
-   `#{git_command} push #{source} #{src_branch} --tags`
+ def push_to_upstream
+   push_branch(source, src_branch)
+   push_tags(source)
  end
 
  def commit_metadata

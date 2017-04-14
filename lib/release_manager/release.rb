@@ -59,7 +59,7 @@ class Release
 
   def push 
     return "Would have just pushed the code and tag to #{puppet_module.source}" if dry_run?
-    puppet_module.push 
+    puppet_module.push_to_upstream
   end
 
   def dry_run?
