@@ -48,12 +48,20 @@ class Sandbox
   def setup_control_repo(url)
     # clone r10k unless already cloned
     fork = create_repo_fork(url)
-    c = ControlRepo.create(control_repo_path, fork.ssh_url_to_repo, name)
+    c = ControlRepo.create(control_repo_path, fork.ssh_url_to_repo)
     c.add_remote(fork.ssh_url_to_repo, 'myfork')
     c.add_remote(url, 'upstream')
     c.fetch('upstream')
-    # TODO we might have to rebase the code here
-    c.create_branch(name, 'upstream/dev')
+    c.fetch('myfork')
+    c.fetch('origin')
+    # if the user has previously created the branch but doesn't exist locally, no need to create
+    if !c.branch_exist?("upstream/#{name}") and !c.branch_exist?(name)
+      # if the user doesn't have the branch, we create from upstream
+      # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
+      c.create_branch(name, 'upstream/dev')
+      # branch.upstream = c.repo.branches["upstream/#{name}"]
+    end
+    c.checkout_branch(name)
     c
   end
 
@@ -68,9 +76,16 @@ class Sandbox
     m.add_remote(fork.ssh_url_to_repo, 'myfork')
     m.add_remote(mod.repo, 'upstream')
     m.fetch('upstream')
-    m.create_branch(name, 'upstream/master')
+    m.fetch('myfork')
+    m.fetch('origin')
+    # if the user has previously created the branch but doesn't exist locally, no need to create
+    if !m.branch_exist?("myfork/#{name}") and !m.branch_exist?(name)
+      # if the user doesn't have the branch, we create from upstream, push to origin
+      # and then delete
+      branch = m.create_branch(name, 'upstream/master')
+    end
+    m.push_branch('myfork', name)
     m.checkout_branch(name)
-    # TODO we might have to rebase the code here
     logger.info("Updating r10k-control Puppetfile to use fork: #{fork.ssh_url_to_repo} with branch: #{name}")
     puppetfile.write_source(mod.name, fork.ssh_url_to_repo, name )
     m
