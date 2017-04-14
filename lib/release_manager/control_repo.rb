@@ -14,7 +14,7 @@ class ControlRepo
   end
 
   # @return [ControlRepo] - creates a new control repo object and clones the url unless already cloned
-  def self.create(path, url, branch = 'dev')
+  def self.create(path, url)
     c = ControlRepo.new(path, url)
     c.clone(url, path)
     c
