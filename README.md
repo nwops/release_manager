@@ -84,6 +84,7 @@ to use those new branches and forks.  This can be a huge burden and consume some
 12. Push the commit to the r10k-control
 13. Add the upstream remote for all of the repos you just cloned
 14. Add members to your forked projects
+15. push new branch on each forked project
 
 Yikes!  This is a long list of things to do.  It is human nature to skip some or all of these steps to save time even though
 it is in our best interest to follow these steps.  As humans we will always resort to the path of least resistance. 
@@ -103,6 +104,9 @@ Release manager provides the following commands to help you create sandboxes, re
 ### sandbox-create
 The sandbox-create command wraps all the git, git cloning, and git forking tasks into a single command.  Usage of this command
 will save you a great deal of time upon each run.
+
+Please note: this requires the usage of [ssh-agent](#ssh-agent-usage). 
+
 
 ```
 Usage: sandbox-create [options]
@@ -244,6 +248,51 @@ R10K_REPO_URL - The git repo url to r10k-control (ie. git@gitlab.com:nwops/r10k-
 
 DEFAULT_MEMBERS - The default members each forked project should add permissions to (ie, 'ci_runner', 'r10k_user')
 
+## Ssh agent usage
+In order to use sandbox-create you need to ensure you have ssh-agent running in the background and the following 
+environment variables are exported.  In some cases you might have this automated via a shell login script.
+
+* SSH_AUTH_SOCK
+* SSH_AGENT_PID
+
+Automated usage
+
+```
+#!/usr/bin/env bash
+#
+# setup ssh-agent
+#
+# set environment variables if user's agent already exists
+[ -z "$SSH_AUTH_SOCK" ] && SSH_AUTH_SOCK=$(ls -l /tmp/ssh-*/agent.* 2> /dev/null | grep $(whoami) | awk '{print $9}')
+[ -z "$SSH_AGENT_PID" -a -z `echo $SSH_AUTH_SOCK | cut -d. -f2` ] && SSH_AGENT_PID=$((`echo $SSH_AUTH_SOCK | cut -d. -f2` + 1))
+[ -n "$SSH_AUTH_SOCK" ] && export SSH_AUTH_SOCK
+[ -n "$SSH_AGENT_PID" ] && export SSH_AGENT_PID
+
+# start agent if necessary
+if [ -z $SSH_AGENT_PID ] && [ -z $SSH_TTY ]; then  # if no agent & not in ssh
+  eval `ssh-agent -s` > /dev/null
+fi
+
+# setup addition of keys when needed
+if [ -z "$SSH_TTY" ] ; then                     # if not using ssh
+  ssh-add -l > /dev/null                        # check for keys
+  if [ $? -ne 0 ] ; then
+    alias ssh='ssh-add -l > /dev/null || ssh-add && unalias ssh ; ssh'
+    if [ -f "/usr/lib/ssh/x11-ssh-askpass" ] ; then
+      SSH_ASKPASS="/usr/lib/ssh/x11-ssh-askpass" ; export SSH_ASKPASS
+    fi
+  fi
+fi
+
+```
+Manual Usage
+
+```
+ssh-agent bash
+ssh-add
+# this should prompt for password if your ssh key is protected
+
+```
 
 ## Development
 
