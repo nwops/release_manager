@@ -4,7 +4,8 @@ services:
     image: nwops/release_manager
     build: .
     entrypoint:
-      - bash
+      - ssh-agent
+      - /bin/bash
     environment:
       GEM_HOME: '/home/appuser/.gems'
       BUNDLE_PATH: '/home/appuser/.bundle'
@@ -13,6 +14,8 @@ services:
       GITLAB_API_PRIVATE_TOKEN: 'A_zJJfgE8P-8mFGK2_r9'
       R10K_REPO_URL: "git@web:devops/control-repo.git"
     working_dir: /app
+#    command:
+#      - app_startup_script.sh
     volumes:
       - .:/app
 

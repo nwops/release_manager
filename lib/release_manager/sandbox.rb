@@ -2,6 +2,7 @@ require_relative 'puppet_module'
 require_relative 'control_repo'
 require 'gitlab'
 require 'rugged'
+require 'fileutils'
 require 'release_manager/logger'
 require 'release_manager/vcs_manager'
 
@@ -47,21 +48,20 @@ class Sandbox
   # @param [String] url - the url to clone and fork
   def setup_control_repo(url)
     # clone r10k unless already cloned
+    puts "## r10k-control ##".yellow
     fork = create_repo_fork(url)
     c = ControlRepo.create(control_repo_path, fork.ssh_url_to_repo)
     c.add_remote(fork.ssh_url_to_repo, 'myfork')
-    c.add_remote(url, 'upstream')
-    c.fetch('upstream')
     c.fetch('myfork')
     c.fetch('origin')
+    c.add_remote(url, 'upstream')
+    c.fetch('upstream')
+    # if the user doesn't have the branch, we create from upstream
+    # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
+    target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : 'upstream/dev'
     # if the user has previously created the branch but doesn't exist locally, no need to create
-    if !c.branch_exist?("upstream/#{name}") and !c.branch_exist?(name)
-      # if the user doesn't have the branch, we create from upstream
-      # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
-      c.create_branch(name, 'upstream/dev')
-      # branch.upstream = c.repo.branches["upstream/#{name}"]
-    end
-    c.checkout_branch(name)
+    c.create_branch(name, target)
+    c.checkout_branch('upstream/dev')
     c
   end
 
@@ -73,17 +73,16 @@ class Sandbox
     raise InvalidModule.new(mod) unless mod.instance_of?(ControlMod)
     fork = create_repo_fork(mod.repo)
     m = PuppetModule.create(File.join(repos_dir, mod.name), fork.ssh_url_to_repo, name)
+    m.fetch('origin')
     m.add_remote(fork.ssh_url_to_repo, 'myfork')
     m.add_remote(mod.repo, 'upstream')
     m.fetch('upstream')
     m.fetch('myfork')
-    m.fetch('origin')
+    # if the user doesn't have the branch, we create from upstream
+    # and then checkout from the fork
+    target = m.branch_exist?("myfork/#{name}") ? "myfork/#{name}" : 'upstream/master'
     # if the user has previously created the branch but doesn't exist locally, no need to create
-    if !m.branch_exist?("myfork/#{name}") and !m.branch_exist?(name)
-      # if the user doesn't have the branch, we create from upstream, push to origin
-      # and then delete
-      branch = m.create_branch(name, 'upstream/master')
-    end
+    m.create_branch(name, target)
     m.push_branch('myfork', name)
     m.checkout_branch(name)
     logger.info("Updating r10k-control Puppetfile to use fork: #{fork.ssh_url_to_repo} with branch: #{name}")
@@ -104,8 +103,10 @@ class Sandbox
     setup_repos_dir(repos_dir)
     @control_repo = setup_control_repo(r10k_url)
     # get modules we are interested in
-    @control_repo.checkout_branch('upstream/dev')
-    modules.each_value { | mod | setup_module_repo(mod) }
+    modules.each_value do | mod |
+      puts "## #{mod.name} ##".yellow
+      setup_module_repo(mod)
+    end
     @control_repo.checkout_branch(name)
     puppetfile.write_to_file
     logger.info("Committing Puppetfile changes to r10k-control branch: #{name}")

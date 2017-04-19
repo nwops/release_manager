@@ -115,6 +115,7 @@ module ReleaseManager
           logger.info("Checking out branch: #{name} for #{path}")
           repo.checkout(name)
         else
+          # already checked out
           logger.debug("Currently on branch #{name} for #{path}")
           repo.branches[name]
         end

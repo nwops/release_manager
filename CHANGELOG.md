@@ -1,4 +1,8 @@
 # Release Manager
+## v0.2.2
+ * Fixes issue when existing branch exists on remote but not local
+ * improves docker setup
+ * Fixes issue where module branch was not pushed
 ## v0.2.1
  * Improves docker setup
  * Removes ability to push upon deploying module
