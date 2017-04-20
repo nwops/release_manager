@@ -45,13 +45,15 @@ module ReleaseManager
         end
       end
 
-      def add_remote(url, remote_name = 'upstream' )
+      def add_remote(url, remote_name = 'upstream', reset_url = false )
         if remote_exists?(remote_name)
           # ensure the correct url is set
           # this sets a non persistant fetch url
           unless remote_url_matches?(remote_name, url)
-            logger.info("Resetting #{remote_name} remote to #{url} for #{path}")
-            repo.remotes.set_url(remote_name,url)
+            if reset_url
+              logger.info("Resetting #{remote_name} remote to #{url} for #{path}")
+              repo.remotes.set_url(remote_name,url)
+            end
           end
         else
           logger.info("Adding #{remote_name} remote to #{url} for #{path}")

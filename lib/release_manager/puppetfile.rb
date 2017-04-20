@@ -35,6 +35,10 @@ class Puppetfile
     `#{git_command} rev-parse --abbrev-ref HEAD`
   end
 
+  def add_module(name, metadata)
+    modules[name] = ControlMod.new(name, metadata)
+  end
+
   def push(remote, branch, force = false)
     opts = force ? '-f' : ''
     `#{git_command} push #{remote} #{branch} #{opts}`

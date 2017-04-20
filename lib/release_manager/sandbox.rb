@@ -61,7 +61,7 @@ class Sandbox
     target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : 'upstream/dev'
     # if the user has previously created the branch but doesn't exist locally, no need to create
     c.create_branch(name, target)
-    c.checkout_branch('upstream/dev')
+    c.checkout_branch(name)
     c
   end
 
@@ -75,8 +75,20 @@ class Sandbox
     m = PuppetModule.create(File.join(repos_dir, mod.name), fork.ssh_url_to_repo, name)
     m.fetch('origin')
     m.add_remote(fork.ssh_url_to_repo, 'myfork')
-    m.add_remote(mod.repo, 'upstream')
-    m.fetch('upstream')
+    # without the following, we risk accidently setting the upstream to the newly forked url
+    # this occurs because r10k-control branch contains the forked url instead of the upstream url
+    # we assume the metadata.source attribute contains the correct upstream url
+    begin
+      if m.source =~ /\Agit\@/
+        m.add_remote(m.source, 'upstream', true)
+        m.fetch('upstream')
+      else
+        logger.warn("Module's source is not defined correctly for #{m.name} should be a git url")
+      end
+    rescue ModNotFoundException => e
+      logger.error("Is #{mod.name} a puppet module?  Can't find the metadata source")
+    end
+
     m.fetch('myfork')
     # if the user doesn't have the branch, we create from upstream
     # and then checkout from the fork
@@ -88,6 +100,17 @@ class Sandbox
     logger.info("Updating r10k-control Puppetfile to use fork: #{fork.ssh_url_to_repo} with branch: #{name}")
     puppetfile.write_source(mod.name, fork.ssh_url_to_repo, name )
     m
+  end
+
+  def setup_new_module(mod_name)
+    repo_url = nil
+    loop do
+      print "Please enter the git url of the source repo : ".yellow
+      repo_url = gets.chomp
+      break if repo_url =~ /git\@/
+      puts "Repo Url must be a git url".red
+    end
+    puppetfile.add_module(mod_name, git: repo_url)
   end
 
   # checkout and/or create branch
@@ -103,9 +126,23 @@ class Sandbox
     setup_repos_dir(repos_dir)
     @control_repo = setup_control_repo(r10k_url)
     # get modules we are interested in
-    modules.each_value do | mod |
-      puts "## #{mod.name} ##".yellow
-      setup_module_repo(mod)
+    module_names.each do | mod_name |
+      puts "## #{mod_name} ##".yellow
+      begin
+        mod = puppetfile.find_mod(mod_name)
+        setup_module_repo(mod)
+      rescue InvalidModuleNameException => e
+        logger.error(e.message)
+        value = nil
+        loop do
+          print "Do you want to create a new entry in the Puppetfile for the module named #{mod_name}?(y/n): ".yellow
+          value = gets.downcase.chomp
+          break if value =~ /y|n/
+        end
+        next if value == 'n'
+        mod = setup_new_module(mod_name)
+        setup_module_repo(mod)
+      end
     end
     @control_repo.checkout_branch(name)
     puppetfile.write_to_file

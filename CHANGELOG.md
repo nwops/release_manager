@@ -1,4 +1,7 @@
 # Release Manager
+## v0.2.3
+ * Allows the user to add new modules when they don't already exist
+ * Sets the upstream url based on the module source defined in metadata
 ## v0.2.2
  * Fixes issue when existing branch exists on remote but not local
  * improves docker setup
