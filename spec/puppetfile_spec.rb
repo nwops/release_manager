@@ -64,4 +64,12 @@ describe Puppetfile do
     puppetfile.write_to_file
   end
 
+  it 'can find the module' do
+    expect(puppetfile.find_mod('apache')).to be_a_instance_of(ControlMod)
+  end
+
+  it 'can find the module given the direct name' do
+    expect(puppetfile.find_mod('apache2')).to be_a_instance_of(ControlMod)
+  end
+
 end

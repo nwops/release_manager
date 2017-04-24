@@ -84,6 +84,8 @@ class Puppetfile
     mod_name = name.strip.downcase
     mod = modules[mod_name] || modules.find{ |module_name, mod| mod.repo =~ /#{mod_name}/i }
     raise InvalidModuleNameException.new("Invalid module name #{name}, cannot locate in Puppetfile") unless mod
+    # since find returns an array we need to grab the element ouf of the array first
+    return mod.last if mod.instance_of?(Array)
     mod
   end
 

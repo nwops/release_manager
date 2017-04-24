@@ -1,4 +1,6 @@
 # Release Manager
+## Unreleased
+ * Fixes puppetfile not return instance of controlmod
 ## v0.2.3
  * Allows the user to add new modules when they don't already exist
  * Sets the upstream url based on the module source defined in metadata
