@@ -42,11 +42,12 @@ class ModuleDeployer
     begin
       check_requirements
       puts "Found module #{puppet_module.name} with version: #{latest_version}".green
-      puts "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
       if options[:dry_run]
+        puts "Would have updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
         puts "Would have committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
         puts "Would have just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green if options[:push]
       else
+        puts "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
         puppetfile.write_version(puppet_module.name, latest_version)
         puppetfile.write_source(puppet_module.name, puppet_module.source)
         puppetfile.write_to_file
