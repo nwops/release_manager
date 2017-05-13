@@ -55,7 +55,6 @@ class Sandbox
     c.fetch('myfork')
     c.fetch('origin')
     c.add_remote(url, 'upstream')
-    c.fetch('upstream')
     # if the user doesn't have the branch, we create from upstream
     # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
     target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : 'upstream/dev'
@@ -79,24 +78,35 @@ class Sandbox
     # this occurs because r10k-control branch contains the forked url instead of the upstream url
     # we assume the metadata.source attribute contains the correct upstream url
     begin
+      delay_source_change = false
       if m.source =~ /\Agit\@/
         m.add_remote(m.source, 'upstream', true)
-        m.fetch('upstream')
       else
-        logger.warn("Module's source is not defined correctly for #{m.name} should be a git url")
+        logger.warn("Module's source is not defined correctly for #{m.name} should be a git url, fixing...")
+        # delay the changing of metadata source until we checkout the branch
+        delay_source_change = true
+        m.add_remote(mod.repo, 'upstream', true)
       end
     rescue ModNotFoundException => e
       logger.error("Is #{mod.name} a puppet module?  Can't find the metadata source")
     end
-
-    m.fetch('myfork')
     # if the user doesn't have the branch, we create from upstream
     # and then checkout from the fork
-    target = m.branch_exist?("myfork/#{name}") ? "myfork/#{name}" : 'upstream/master'
     # if the user has previously created the branch but doesn't exist locally, no need to create
+    if m.remote_exists?('upstream')
+      target = m.branch_exist?("myfork/#{name}") ? "myfork/#{name}" : 'upstream/master'
+    else
+      # don't create from upstream since the upstream remote does not exist
+      # upstream does not exist because the url in the metadata source is not a git url
+      target = 'master'
+    end
     m.create_branch(name, target)
     m.push_branch('myfork', name)
     m.checkout_branch(name)
+    if delay_source_change
+      m.source = mod.repo
+      m.commit_metadata_source
+    end
     logger.info("Updating r10k-control Puppetfile to use fork: #{fork.ssh_url_to_repo} with branch: #{name}")
     puppetfile.write_source(mod.name, fork.ssh_url_to_repo, name )
     m

@@ -182,13 +182,22 @@ class PuppetModule < WorkflowAction
    push_tags(source)
  end
 
+ # @return [String] the oid of the commit that was created
  def commit_metadata
    to_metadata_file
-   `#{git_command} add #{metadata_file}`
-   `#{git_command} commit -n -m "[ReleaseManager] - bump version to #{version}"`
+   add_file(metadata_file)
+   create_commit("[ReleaseManager] - bump version to #{version}")
+ end
+
+ # @return [String] the oid of the commit that was created
+ def commit_metadata_source
+   to_metadata_file
+   add_file(metadata_file)
+   create_commit("[ReleaseManager] - change source to #{source}")
  end
 
  def to_metadata_file
+   logger.info("Writing to file #{metadata_file}")
    File.write(metadata_file, to_s)
  end
 
