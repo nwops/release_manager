@@ -134,8 +134,9 @@ describe ModuleDeployer do
       allow_any_instance_of(Puppetfile).to receive(:current_branch).and_return('dev')
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
-      output = "\e[32mFound module debug with version: v0.1.3\e[0m\n\e[32mUpdated module debug in Puppetfile to version: v0.1.3\e[0m\n\e[32mWould have committed with message: bump debug to version: v0.1.3\e[0m\n\e[32mWould have just pushed branch: dev to remote: git@github.com/nwops/something.git\e[0m\n"
-      expect{deployer.run}.to output(output).to_stdout
+      expect{deployer.run.to match(%r{Found module debug with version: v0.1.3})}
+      expect{deployer.run.to match(%r{Would have updated module debug in Puppetfile})}
+      expect{deployer.run.to match(%r{Would have just pushed branch: dev to remote: git@github.com/nwops/something.git})}
     end
   end
 
