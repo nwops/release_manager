@@ -20,6 +20,8 @@ module ReleaseManager
         :yellow
       when ::Logger::Severity::INFO, 'INFO'
         :green
+      when ::Logger::Severity::FATAL, 'FATAL'
+        :fatal
       when ::Logger::Severity::ERROR, 'ERROR'
         :fatal
       when ::Logger::Severity::DEBUG, 'DEBUG'
@@ -34,6 +36,8 @@ module ReleaseManager
       case level
         when 'warn'
           ::Logger::Severity::WARN
+        when 'fatal'
+          ::Logger::Severity::FATAL
         when 'debug'
           ::Logger::Severity::DEBUG
         when 'info'
