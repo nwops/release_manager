@@ -13,6 +13,7 @@ __________       .__                                   _____
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [ReleaseManager](#releasemanager)
+  - [Prerequisites](#prerequisites)
   - [Installation](#installation)
     - [Install directly from source](#install-directly-from-source)
   - [The workflow problem](#the-workflow-problem)
@@ -25,6 +26,7 @@ __________       .__                                   _____
     - [bump-changelog](#bump-changelog)
   - [Configuration Settings](#configuration-settings)
     - [Sandbox-create environment variables](#sandbox-create-environment-variables)
+  - [Ssh agent usage](#ssh-agent-usage)
   - [Development](#development)
   - [Contributing](#contributing)
   - [License](#license)
@@ -34,6 +36,17 @@ __________       .__                                   _____
 # ReleaseManager
 
 This gem provides workflow automations around releasing and deploying puppet modules within r10k environments.
+
+## Prerequisites 
+
+1. Must be running Gitlab 8.16+
+2. Must be using ssh keys with gitlab
+3. Must be using ssh-agent to handle git authentication
+4. Must be using Git
+5. Must be using r10k
+6. Must have a r10k-control repo (name can vary)
+7. Must have a Gitlab API Access token (per user)
+
 
 ## Installation
 
@@ -57,9 +70,7 @@ directly from source.
 
 ```
 gem install specific_install  # unless already installed
-gem specific_install <git url to release manager>  
-
-ie. gem specific_install git@github.com/nwops/release_manager.git
+gem specific_install https://github.com/nwops/release_manager  
 ```
 
 
