@@ -7,7 +7,7 @@ describe ReleaseManager::Git::Utilities do
 
 
   let(:path) do
-    File.join(fixtures_dir, 'puppet-debug')
+    File.join(fixtures_dir, 'r10k-control')
   end
 
   before(:each) do
@@ -37,5 +37,11 @@ describe ReleaseManager::Git::Utilities do
 
   it '#find_or_create_remote with find' do
     expect(find_or_create_remote('git@someserver.example.com:group/project.git')).to be_an_instance_of(Rugged::Remote)
+  end
+
+  it 'create commit' do
+    require 'pry'; binding.pry
+    File.write()
+    expect(create_commit('fancy new message')).to match(/\b[0-9a-f]{5,40}\b/)
   end
 end

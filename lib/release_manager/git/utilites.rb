@@ -209,7 +209,7 @@ module ReleaseManager
       def create_commit(message)
         # get the index for this repository
         index = repo.index
-        commit_tree = index.write_tree(repo)
+        commit_tree = repo.lookup(repo.index.write_tree)
         oid = Rugged::Commit.create(repo,
                               :author => author,
                               :message => message,
@@ -218,6 +218,7 @@ module ReleaseManager
                               :tree => commit_tree,
                               :update_ref => 'HEAD')
         logger.info("Created commit #{oid} with #{message}")
+        repo.index.write
         oid
       end
 
