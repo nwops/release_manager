@@ -1,5 +1,7 @@
 # Release Manager
 ## Unreleased
+
+## v0.3.0
  * Fixes color with fatal errors
  * Changes PuppetModule to use rugged commit commands
  * Auto corrects bad source attribute with metadata.json
