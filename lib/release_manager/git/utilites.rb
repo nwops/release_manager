@@ -190,12 +190,19 @@ module ReleaseManager
         {:email=>author_email, :time=>Time.now, :name=>author_name}
       end
 
+      # # @param [String] file - the path to the file you want to add
+      # def add_file(file)
+      #   return unless File.exists?(file)
+      #   index = repo.index
+      #   file.slice!(repo.workdir)
+      #   index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
+      #   index.write
+      # end
+
       # @param [String] file - the path to the file you want to add
       def add_file(file)
-        return unless File.exists?(file)
-        index = repo.index
-        file.slice!(repo.workdir)
-        index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
+        # TODO: change this to rugged implementation
+      `git --work-tree=#{path} --git-dir=#{repo.path} add #{file}`
       end
 
       # @param [String] file - the path to the file you want to remove
@@ -203,23 +210,41 @@ module ReleaseManager
         index = repo.index
         File.unlink(file)
         index.remove(file)
+        index.write
       end
 
+      # # @param [String] message - the message you want in the commit
+      # def create_commit(message)
+      #   # get the index for this repository
+      #   logger.info repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
+      #
+      #   index = repo.index
+      #   index.read_tree repo.head.target.tree unless repo.empty?
+      #   require 'pry'; binding.pry
+      #   #repo.lookup
+      #   tree_new = index.write_tree repo
+      #   oid = Rugged::Commit.create(repo,
+      #                         author: author,
+      #                         message: message,
+      #                         committer: author,
+      #                         parents: repo.empty? ? [] : [repo.head.target].compact,
+      #                         tree: tree_new,
+      #                         update_ref: 'HEAD')
+      #   logger.info("Created commit #{oid} with #{message}")
+      #   index.write
+      #   #repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
+      #   oid
+      # end
+
       # @param [String] message - the message you want in the commit
+      # TODO: change this to rugged implementation
       def create_commit(message)
-        # get the index for this repository
-        index = repo.index
-        commit_tree = repo.lookup(repo.index.write_tree)
-        oid = Rugged::Commit.create(repo,
-                              :author => author,
-                              :message => message,
-                              :committer => author,
-                              :parents => [repo.head.target],
-                              :tree => commit_tree,
-                              :update_ref => 'HEAD')
-        logger.info("Created commit #{oid} with #{message}")
-        repo.index.write
-        oid
+        output = `git --work-tree=#{path} --git-dir=#{repo.path} commit --message '#{message}' 2>&1`
+        if $?.success?
+          logger.info("Created commit #{message}")
+        else
+          logger.error output
+        end
       end
 
       # @return [String] the current branch name

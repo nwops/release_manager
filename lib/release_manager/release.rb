@@ -20,6 +20,7 @@ require_relative 'puppet_module'
 
 class Release
   attr_reader :path, :options
+  include ReleaseManager::Logger
 
   def initialize(path = Dir.getwd, options = {})
     @path = path || Dir.getwd    
@@ -40,25 +41,37 @@ class Release
   end
 
   def tag 
-    return "Would have just tagged the module to #{version}" if dry_run?
+    if dry_run?
+      logger.info "Would have just tagged the module to #{version}"
+      return
+    end
     puppet_module.tag_module 
   end
 
-  def bump 
-    return "Would have just bumped the version to #{version}" if dry_run?
+  def bump
+    if dry_run?
+      logger.info "Would have just bumped the version to #{version}"
+      return
+    end
     puppet_module.bump_patch_version unless options[:bump]
     # save the update version to the metadata file, then commit
     puppet_module.commit_metadata
   end
 
-  def bump_log 
-    return "Would have just bumped the CHANGELOG to version #{version}" if dry_run?
+  def bump_log
+    if dry_run?
+      logger.info "Would have just bumped the CHANGELOG to version #{version}"
+      return
+    end
     log = Changelog.new(puppet_module.path, version, {:commit => true})
     log.run
   end
 
-  def push 
-    return "Would have just pushed the code and tag to #{puppet_module.source}" if dry_run?
+  def push
+    if dry_run?
+      logger.info "Would have just pushed the code and tag to #{puppet_module.source}"
+      return
+    end
     puppet_module.push_to_upstream
   end
 
@@ -75,17 +88,17 @@ class Release
       PuppetModule.check_requirements(puppet_module.path)
       Changelog.check_requirements(puppet_module.path)
     rescue NoUnreleasedLine
-      puts "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry".fatal
+      logger.fatal "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry"
       exit 1
     rescue UpstreamSourceMatch
-      puts "The upstream remote url does not match the source url in the metadata.json source".fatal
+      logger.fatal "The upstream remote url does not match the source url in the metadata.json source"
       add_upstream_remote
       exit 1
     rescue InvalidMetadataSource
-      puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
+      logger.fatal "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git"
       exit 1
     rescue NoChangeLogFile
-      puts "CHANGELOG.md does not exist, please create one".fatal
+      logger.fatal "CHANGELOG.md does not exist, please create one"
       exit 1
     end
   end
@@ -94,21 +107,29 @@ class Release
   # currently this must be done manually by a release manager
   # 
   def release
+    unless auto_release?
+      print "Have you merged your code?  Did you fetch and rebase against the upstream?  Want to continue (y/n)?: ".yellow
+      answer = gets.downcase.chomp
+      if answer == 'n'
+        return false
+      end
+    end
+
     # updates the metadata.js file to the next version
-    puts bump
+    bump
     # updates the changelog to the next version based on the metadata file
-    puts bump_log
+    bump_log
     # tags the r10k-module with the version found in the metadata.json file
-    puts tag
+    tag
     # pushes the updated code and tags to the upstream repo
     if auto_release? 
-     puts push
+     push
      return
     end
     print "Ready to release version #{version} to #{puppet_module.source}\n and forever change history(y/n)?: ".yellow
     answer = gets.downcase.chomp
     if answer == 'y'
-      puts push 
+      push
       $?.success?
     else
       puts "Nah, forget it, this release wasn't that cool anyways.".yellow
@@ -137,16 +158,16 @@ class Release
       unless value
 	      exit 1
       end
-      puts "Releasing Version #{version} to #{puppet_module.source}".green
-      puts "Version #{version} has been released successfully".green 
-      puts "Although this was a dry run so nothing really happended".green if dry_run?
+      logger.info "Releasing Version #{version} to #{puppet_module.source}"
+      logger.info "Version #{version} has been released successfully"
+      puts "This was a dry run so nothing actually happen".green if dry_run?
       exit 0
     rescue GitError
-      puts "There was an issue when running a git command".fatal
+      logger.fatal "There was an issue when running a git command"
     rescue InvalidMetadataSource
-      puts "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git".red
-    rescue ModNotFoundException 
-      puts "Invalid module path for #{path}".red
+      logger.fatal "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git"
+    rescue ModNotFoundException
+      logger.fatal "Invalid module path for #{path}"
       exit -1
     end
   end

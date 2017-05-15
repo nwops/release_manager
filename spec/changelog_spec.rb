@@ -19,7 +19,7 @@ describe Changelog do
 
   describe 'No ChangeLog' do
     it 'check_requirements' do
-      expect{Changelog.check_requirements(path)}.to raise_error(NoChangeLogFile)
+      expect{Changelog.check_requirements(path)}.to_not raise_error(NoChangeLogFile)
     end
   end
 

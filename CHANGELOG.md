@@ -1,5 +1,14 @@
 # Release Manager
 ## Unreleased
+ * Fixes color with fatal errors
+ * Changes PuppetModule to use rugged commit commands
+ * Auto corrects bad source attribute with metadata.json
+ * Adds new methods to git utilities
+ * Fixes error when fetching remotes that do not exist
+ * Fixes issue where pushing of remotes via url failed
+ * Adds automatic fetching or remote before creating branch from remote
+ * Fixes #11 - Add output during dry run for deploy-mod
+## v0.2.4
  * Fixes puppetfile not return instance of controlmod
 ## v0.2.3
  * Allows the user to add new modules when they don't already exist

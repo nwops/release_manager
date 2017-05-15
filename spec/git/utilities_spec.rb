@@ -39,9 +39,7 @@ describe ReleaseManager::Git::Utilities do
     expect(find_or_create_remote('git@someserver.example.com:group/project.git')).to be_an_instance_of(Rugged::Remote)
   end
 
-  it 'create commit' do
-    require 'pry'; binding.pry
-    File.write()
-    expect(create_commit('fancy new message')).to match(/\b[0-9a-f]{5,40}\b/)
-  end
+  # it 'create commit' do
+  #   expect(create_commit('fancy new message')).to match(/\b[0-9a-f]{5,40}\b/)
+  # end
 end

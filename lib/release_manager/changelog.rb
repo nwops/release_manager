@@ -13,21 +13,37 @@ require 'release_manager/workflow_action'
 class Changelog < WorkflowAction
   attr_reader :root_dir, :version, :options
 
+  include ReleaseManager::Git::Utilities
+  include ReleaseManager::Logger
+
   def initialize(module_path, version, options = {})
     @options = options
     @root_dir = module_path
     @version = version
   end
 
+  def create_changelog_file
+    return if File.exists?(changelog_file)
+    contents = "# Module Name\n\n## Unreleased\n"
+    File.write(changelog_file, contents)
+    logger.info("Creating initial changelog file")
+    commit_changelog("[ReleaseManager] - create empty changelog")
+  end
+
+  def path
+    @root_dir
+  end
+
   def run
+    create_changelog_file
     # write the new changelog unless it does not need updating
     if already_released? 
-      puts "Fail: Version #{version} had already been released, did you bump the version?".red
+      logger.fatal "Version #{version} had already been released, did you bump the version manually?"
       exit 1
     else
-      File.write(changelog_file, new_content) 
-      create_commit if options[:commit] 
-      puts "Success: The changelog has been updated to version #{version}".green
+      File.write(changelog_file, new_content)
+      commit_changelog if options[:commit]
+      logger.info "The changelog has been updated to version #{version}"
     end
   end
 
@@ -62,9 +78,7 @@ EOF
 
   # @returns [String] the full path to the change log file
   def changelog_file
-    file = options[:file] || File.join(root_dir, 'CHANGELOG.md')
-    raise NoChangeLogFile unless File.exists?(file)
-    file
+    options[:file] || File.join(root_dir, 'CHANGELOG.md')
   end
 
   # @returns [Array[String]]
@@ -77,7 +91,7 @@ EOF
     begin
       linenum = changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Unreleased/i }
     rescue ArgumentError => e
-      puts "Error with CHANGELOG.md #{e.message}".fatal
+      logger.fatal "Error with CHANGELOG.md #{e.message}"
       exit 1
     end
     raise NoUnreleasedLine unless linenum
@@ -100,19 +114,17 @@ EOF
     update_unreleased.join
   end
 
-  def git_command
-    "git --git-dir=#{root_dir}/.git"
-  end
-
-  def create_commit
-    `#{git_command} add #{changelog_file}`
-    puts `#{git_command} commit -m "[ReleaseManager] - bump changelog to version #{version}"`
+  # @return [String] the oid of the commit that was created
+  def commit_changelog(msg = nil)
+    add_file(changelog_file)
+    message = msg || "[ReleaseManager] - bump changelog to version #{version}"
+    create_commit(message)
   end
 
   # checks to make sure the unreleased line is valid, and the file exists
   def self.check_requirements(path)
     log = new(path, nil)
-    log.unreleased_index
+    log.unreleased_index if File.exists?(log.changelog_file)
   end
 end
 
