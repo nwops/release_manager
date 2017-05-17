@@ -89,6 +89,16 @@ class Puppetfile
     mod
   end
 
+  # @param [String] name - the name of the mod you wish to find in the puppetfile
+  # @return [Boolean] - true if the module is found
+  def mod_exists?(name)
+    begin
+      !!find_mod(name)
+    rescue InvalidModuleNameException
+      false
+    end
+  end
+
   def write_version(mod_name, version)
     mod = find_mod(mod_name)
     mod.pin_version(version)

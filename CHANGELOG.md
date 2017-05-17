@@ -1,6 +1,6 @@
 # Release Manager
-## Unreleased
-
+## v0.3.1
+ * Adds ability to add the module to the puppetfile at deployment time
 ## v0.3.0
  * Fixes color with fatal errors
  * Changes PuppetModule to use rugged commit commands

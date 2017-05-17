@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    release_manager (0.3.0)
+    release_manager (0.3.1)
       gitlab (~> 3.7.0)
+      highline (~> 1.7)
       rugged
 
 GEM
@@ -14,6 +15,7 @@ GEM
     gitlab (3.7.0)
       httparty (~> 0.13.0)
       terminal-table
+    highline (1.7.8)
     httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
@@ -61,6 +63,7 @@ PLATFORMS
 DEPENDENCIES
   bundler
   gitlab (~> 3.7.0)
+  highline (~> 1.7)
   pry
   rake
   release_manager!
