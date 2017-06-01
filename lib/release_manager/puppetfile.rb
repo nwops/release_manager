@@ -134,7 +134,7 @@ class Puppetfile
   end
 
   def to_s
-    modules.collect {|n, mod| mod.to_s }.join("\n\n")
+    modules.sort.collect {|n, mod| mod.to_s }.join("\n\n")
   end
 
   def self.to_puppetfile(json_data)
