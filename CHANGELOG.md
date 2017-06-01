@@ -1,4 +1,6 @@
 # Release Manager
+## v0.4.0
+ * Adds ability to sort the puppetfile when writing to file
 ## v0.3.1
  * Adds ability to add the module to the puppetfile at deployment time
 ## v0.3.0
