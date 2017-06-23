@@ -71,11 +71,6 @@ module ReleaseManager
         Rugged::Repository.clone_at(url, path, checkout_branch: branch_name)
       end
 
-      # replaces namespace from the url with the supplied or default namespace
-      def swap_namespace(url, namespace = nil)
-        url.gsub(/\:([\w-]+)\//, ":#{namespace || client.user.username}/")
-      end
-
       # @return [Gitlab::ObjectifiedHash] Information about the forked project
       # @param [ControlMod] the module you want to fork
       def create_repo_fork(url, options = {} )
@@ -96,6 +91,29 @@ module ReleaseManager
         repo
       end
 
+      # @param [String] url - a git url
+      # @param  [String]  tag_name The name of the new tag.
+      # @param  [String]  ref The ref (commit sha, branch name, or another tag) the tag will point to.
+      # @param  [String]  message Optional message for tag, creates annotated tag if specified.
+      # @param  [String]  description Optional release notes for tag.
+      # @return [Gitlab::ObjectifiedHash]
+      def create_tag(url, tag_name, ref, message = nil, description = nil)
+        id = repo_id(url)
+        client.create_tag(id, tag_name, ref, message, description)
+      end
+
+      private
+
+      # @param [String] url - a git url
+      # @return [String] a string representing the project id from gitlab
+      # gets the project id from gitlab using the remote API
+      def repo_id(url)
+        # ie. git@server:namespace/project.git
+        proj = url.match(/:(.*\/.*)\.git/)
+        raise RepoNotFound unless proj
+        proj[1]
+      end
+
       # @param [String] url - the git url of the repository
       # @return [Boolean] returns the project object (true) if found, false otherwise
       def repo_exists?(url)
@@ -107,14 +125,9 @@ module ReleaseManager
         end
       end
 
-      # @param [String] url - a git url
-      # @return [String] a string representing the project id from gitlab
-      # gets the project id from gitlab using the remote API
-      def repo_id(url)
-        # ie. git@server:namespace/project.git
-        proj = url.match(/:(.*\/.*)\.git/)
-        raise RepoNotFound unless proj
-        proj[1]
+      # replaces namespace from the url with the supplied or default namespace
+      def swap_namespace(url, namespace = nil)
+        url.gsub(/\:([\w-]+)\//, ":#{namespace || client.user.username}/")
       end
     end
   end

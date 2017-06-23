@@ -4,7 +4,7 @@ module ReleaseManager
   module VCSManager
     extend Forwardable
     attr_accessor :vcs
-    def_delegators :vcs, :add_ssh_key, :add_permission, :create_repo_fork, :swap_namespace,
+    def_delegators :vcs, :add_ssh_key, :add_permission, :create_repo_fork, :swap_namespace, :create_tag,
                    :clone_repo, :create_repo_branch, :repo_exists?, :repo_id, :add_permissions
 
     def vcs

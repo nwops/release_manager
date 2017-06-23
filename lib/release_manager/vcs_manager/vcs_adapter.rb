@@ -41,6 +41,16 @@ module ReleaseManager
       def repo_id(url)
         raise NotImplementedError
       end
+
+      # @param [String] url - a git url
+      # @param  [String]  tag_name The name of the new tag.
+      # @param  [String]  ref The ref (commit sha, branch name, or another tag) the tag will point to.
+      # @param  [String]  message Optional message for tag, creates annotated tag if specified.
+      # @param  [String]  description Optional release notes for tag.
+      # @return [Gitlab::ObjectifiedHash]
+      def create_tag(url, tag_name, ref, message = nil, description = nil)
+        raise NotImplementedError
+      end
     end
   end
 end
