@@ -1,18 +1,7 @@
 require 'json'
 require_relative 'puppet_module'
 
-class Release
-  attr_reader :path, :options
-  include ReleaseManager::Logger
-
-  def initialize(path = Dir.getwd, options = {})
-    @path = path || Dir.getwd    
-    @options = options
-  end
-  
-  def puppet_module
-    @puppet_module ||= PuppetModule.new(path, upstream_repo)
-  end
+class RemoteRelease < Release
 
   def upstream_repo 
     options[:repo] || ENV['UPSTREAM_REPO']  

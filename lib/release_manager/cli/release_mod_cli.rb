@@ -1,3 +1,17 @@
+# Purpose: release a new version of a module or r10k-control from the src branch by performing
+#          the following tasks:
+#           - bump version in metadata file
+#           - bump changelog version using version in metadata file
+#           - tag the code matching the version in the metadata file
+#           - push to upstream
+#  This script can be used on modules or r10k-control.  If using on a module
+#  be sure to pass in the repo path using --repo.  The repo is where this script
+#  pushes too.
+#
+#  You should also use the -d feature which simulates a run of the script without doing
+#  anything harmful.
+#
+#  Run with -h to see the help
 require 'release_manager/release'
 require 'optparse'
 require 'release_manager/version'
