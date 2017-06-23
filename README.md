@@ -39,7 +39,7 @@ This gem provides workflow automations around releasing and deploying puppet mod
 
 ## Prerequisites 
 
-1. Must be running Gitlab 8.16+
+1. Must be running Gitlab 9.0+
 2. Must be using ssh keys with gitlab
 3. Must be using ssh-agent to handle git authentication
 4. Must be using Git
@@ -47,8 +47,6 @@ This gem provides workflow automations around releasing and deploying puppet mod
 6. Must have a r10k-control repo (name can vary)
 7. Must have a Gitlab API Access token (per user)
 8. Must have the libssh-dev library package installed
-
-
 
 ## Installation
 

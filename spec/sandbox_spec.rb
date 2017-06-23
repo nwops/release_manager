@@ -84,7 +84,7 @@ describe Sandbox do
   it 'fetch repo id' do
     allow(gitlab_repo).to receive(:id).and_return('123')
     allow(Gitlab).to receive(:project_search).with('nwops/project').and_return(gitlab_repo)
-    expect(box.repo_id('git@gitlab.com:nwops/project.git')).to eq("nwops%2Fproject")
+    expect(box.repo_id('git@gitlab.com:nwops/project.git')).to eq("nwops/project")
   end
 
   it 'setup control repo' do

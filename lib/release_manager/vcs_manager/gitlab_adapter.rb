@@ -80,7 +80,8 @@ module ReleaseManager
       # @return [Gitlab::ObjectifiedHash] Information about the forked project
       # @param [ControlMod] the module you want to fork
       def create_repo_fork(url, options = {} )
-        new_url = swap_namespace(url, options[:namespace])
+        namespace = options[:namespace] || Gitlab.user.username
+        new_url = swap_namespace(url, namespace)
         repo = repo_exists?(new_url)
         unless repo
           upstream_repo_id = repo_id(url)
@@ -102,7 +103,7 @@ module ReleaseManager
         upstream_repo_id = repo_id(url)
         begin
           Gitlab.project(upstream_repo_id)
-        rescue
+        rescue Gitlab::Error::NotFound => e
           false
         end
       end
@@ -114,8 +115,7 @@ module ReleaseManager
         # ie. git@server:namespace/project.git
         proj = url.match(/:(.*\/.*)\.git/)
         raise RepoNotFound unless proj
-        # the gitlab api is supposed to encode the slash, but currently that doesn't seem to work
-        proj[1].gsub('/', '%2F')
+        proj[1]
       end
 
       # @return String - the branch name that was created
