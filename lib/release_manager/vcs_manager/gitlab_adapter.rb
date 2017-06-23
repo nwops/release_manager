@@ -57,6 +57,7 @@ module ReleaseManager
 
       # https://docs.gitlab.com/ee/api/members.html
       def add_permissions(project_id, user_ids = [], access_level = 20)
+        user_ids ||= []  # default to empty if nil
         user_ids.map {|id| add_permission(id, project_id, access_level)}
       end
 
@@ -65,12 +66,12 @@ module ReleaseManager
         Gitlab.repo_create_branch(repo_id, branch_name)
       end
 
+      #TODO move this to the git utilities?
       def clone_repo(branch_name, mod_name, url, repos_dir)
         path = File.join(repos_dir, mod_name)
         Rugged::Repository.clone_at(url, path, checkout_branch: branch_name)
       end
 
-      # TODO: extract this out to an adapter
       # replaces namespace from the url with the supplied or default namespace
       def swap_namespace(url, namespace = nil)
         url.gsub(/\:([\w-]+)\//, ":#{namespace || Gitlab.user.username}/")
@@ -78,35 +79,54 @@ module ReleaseManager
 
       # @return [Gitlab::ObjectifiedHash] Information about the forked project
       # @param [ControlMod] the module you want to fork
-      # TODO: extract this out to an adapter
-      # def create_repo_fork(url, namespace = nil )
-      #   new_url = swap_namespace(url, namespace)
-      #   repo = repo_exists?(new_url)
-      #   unless repo
-      #     upstream_repo_id = repo_id(url)
-      #     logger.info("Forking project from #{url} to #{new_url}")
-      #     repo = Gitlab.create_fork(upstream_repo_id)
-      #     # gitlab lies about having completed the forking process, so lets sleep until it is actually done
-      #     loop do
-      #       sleep(1)
-      #       break if repo_exists?(repo.ssh_url_to_repo)
-      #     end
-      #   end
-      #   repo
-      # end
-      #
-      # # @param [String] url - the git url of the repository
-      # # @return [Boolean] returns the project object (true) if found, false otherwise
-      # # TODO: extract this out to an adapter
-      # def repo_exists?(url)
-      #   upstream_repo_id = repo_id(url)
-      #   begin
-      #     Gitlab.project(upstream_repo_id)
-      #   rescue
-      #     false
-      #   end
-      # end
+      def create_repo_fork(url, options = {} )
+        new_url = swap_namespace(url, options[:namespace])
+        repo = repo_exists?(new_url)
+        unless repo
+          upstream_repo_id = repo_id(url)
+          logger.info("Forking project from #{url} to #{new_url}")
+          repo = Gitlab.create_fork(upstream_repo_id)
+          # gitlab lies about having completed the forking process, so lets sleep until it is actually done
+          loop do
+            sleep(1)
+            break if repo_exists?(repo.ssh_url_to_repo)
+          end
+        end
+        add_permissions(repo.id, options[:default_members])
+        repo
+      end
 
+      # @param [String] url - the git url of the repository
+      # @return [Boolean] returns the project object (true) if found, false otherwise
+      def repo_exists?(url)
+        upstream_repo_id = repo_id(url)
+        begin
+          Gitlab.project(upstream_repo_id)
+        rescue
+          false
+        end
+      end
+
+      # @param [String] url - a git url
+      # @return [String] a string representing the project id from gitlab
+      # gets the project id from gitlab using the remote API
+      def repo_id(url)
+        # ie. git@server:namespace/project.git
+        proj = url.match(/:(.*\/.*)\.git/)
+        raise RepoNotFound unless proj
+        # the gitlab api is supposed to encode the slash, but currently that doesn't seem to work
+        proj[1].gsub('/', '%2F')
+      end
+
+      # @return String - the branch name that was created
+      def create_repo_branch(repo_id, branch_name)
+        Gitlab.repo_create_branch(repo_id, branch_name)
+      end
+
+      def clone_repo(mod_name, url)
+        path = File.join(repos_dir, mod_name)
+        Rugged::Repository.clone_at(url, path, checkout_branch: name)
+      end
     end
   end
 end

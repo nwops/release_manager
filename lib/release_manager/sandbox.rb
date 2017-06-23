@@ -5,12 +5,15 @@ require 'rugged'
 require 'fileutils'
 require 'release_manager/logger'
 require 'release_manager/vcs_manager'
+require 'forwardable'
 
 class Sandbox
   attr_reader :modules, :name, :repos_dir, :options,
               :control_repo, :module_names, :control_repo_path, :vcs
 
+  include ReleaseManager::VCSManager
   include ReleaseManager::Logger
+  include ReleaseManager::Git::Utilities
 
   def initialize(name, modules, control_repo_path, repos_dir = nil, options = {})
     @name = name
@@ -163,17 +166,6 @@ class Sandbox
     return self
   end
 
-  # @param [String] url - a git url
-  # @return [String] a string representing the project id from gitlab
-  # gets the project id from gitlab using the remote API
-  def repo_id(url)
-    # ie. git@server:namespace/project.git
-    proj = url.match(/:(.*\/.*)\.git/)
-    raise RepoNotFound unless proj
-    # the gitlab api is supposed to encode the slash, but currently that doesn't seem to work
-    proj[1].gsub('/', '%2F')
-  end
-
   # TODO: extract this out to an adapter
   def verify_api_token
     begin
@@ -181,56 +173,6 @@ class Sandbox
     rescue Exception => e
       raise InvalidToken.new(e.message)
     end
-  end
-
-  # TODO: extract this out to an adapter
-  # replaces namespace from the url with the supplied or default namespace
-  def swap_namespace(url, namespace = nil)
-    url.gsub(/\:([\w-]+)\//, ":#{namespace || Gitlab.user.username}/")
-  end
-
-  # @return [Gitlab::ObjectifiedHash] Information about the forked project
-  # @param [ControlMod] the module you want to fork
-  # TODO: extract this out to an adapter
-  def create_repo_fork(url, namespace = nil )
-    new_url = swap_namespace(url, namespace)
-    repo = repo_exists?(new_url)
-    unless repo
-      upstream_repo_id = repo_id(url)
-      logger.info("Forking project from #{url} to #{new_url}")
-      repo = Gitlab.create_fork(upstream_repo_id)
-      # gitlab lies about having completed the forking process, so lets sleep until it is actually done
-      loop do
-        sleep(1)
-        break if repo_exists?(repo.ssh_url_to_repo)
-      end
-    end
-    vcs.add_permissions(repo.id, options[:default_members])
-    repo
-  end
-
-  # @param [String] url - the git url of the repository
-  # @return [Boolean] returns the project object (true) if found, false otherwise
-  # TODO: extract this out to an adapter
-  def repo_exists?(url)
-    upstream_repo_id = repo_id(url)
-    begin
-      Gitlab.project(upstream_repo_id)
-    rescue
-      false
-    end
-  end
-
-  # @return String - the branch name that was created
-  # TODO: extract this out to an adapter
-  def create_repo_branch(repo_id, branch_name)
-    Gitlab.repo_create_branch(repo_id, branch_name)
-  end
-
-  # TODO: extract this out to an adapter
-  def clone_repo(mod_name, url)
-    path = File.join(repos_dir, mod_name)
-    Rugged::Repository.clone_at(url, path, checkout_branch: name)
   end
 
   # @returns [Hash[PuppetModules]] an hash of puppet modules
@@ -244,7 +186,7 @@ class Sandbox
 
   def check_requirements
     begin
-      vcs.add_ssh_key
+      add_ssh_key
     rescue InvalidModuleNameException => e
       logger.error(e.message)
       exit 1
