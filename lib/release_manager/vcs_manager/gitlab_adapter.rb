@@ -71,14 +71,15 @@ module ReleaseManager
         Rugged::Repository.clone_at(url, path, checkout_branch: branch_name)
       end
 
+      # TODO verify the proposed fork does not match the upstream
       # @return [Gitlab::ObjectifiedHash] Information about the forked project
       # @param [ControlMod] the module you want to fork
       def create_repo_fork(url, options = {} )
         namespace = options[:namespace] || client.user.username
         new_url = swap_namespace(url, namespace)
         repo = repo_exists?(new_url)
-        unless repo
-          upstream_repo_id = repo_id(url)
+        unless repo or url == new_url
+          upstream_repo_id = name_to_id(repo_id(url))
           logger.info("Forking project from #{url} to #{new_url}")
           repo = client.create_fork(upstream_repo_id)
           # gitlab lies about having completed the forking process, so lets sleep until it is actually done
@@ -103,6 +104,13 @@ module ReleaseManager
       end
 
       private
+
+      # @param namespace [String] - the namespace / project name
+      # @return [Integer] - the id number of the project
+      def name_to_id(namespace)
+        p = client.project(namespace)
+        p.id
+      end
 
       # @param [String] url - a git url
       # @return [String] a string representing the project id from gitlab
