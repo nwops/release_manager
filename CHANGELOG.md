@@ -1,4 +1,7 @@
 # Release Manager
+## Unreleased
+ * Updates gitlab gem to 4.1
+ * Moves gitlab methods to gitlab adapter
 ## v0.4.0
  * Adds ability to sort the puppetfile when writing to file
 ## v0.3.1

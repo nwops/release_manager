@@ -63,10 +63,9 @@ module ReleaseManager
 
       # @return String - the branch name that was created
       def create_repo_branch(repo_id, branch_name)
-        Gitlab.repo_create_branch(repo_id, branch_name)
+        client.repo_create_branch(repo_id, branch_name)
       end
 
-      #TODO move this to the git utilities?
       def clone_repo(branch_name, mod_name, url, repos_dir)
         path = File.join(repos_dir, mod_name)
         Rugged::Repository.clone_at(url, path, checkout_branch: branch_name)
@@ -74,19 +73,19 @@ module ReleaseManager
 
       # replaces namespace from the url with the supplied or default namespace
       def swap_namespace(url, namespace = nil)
-        url.gsub(/\:([\w-]+)\//, ":#{namespace || Gitlab.user.username}/")
+        url.gsub(/\:([\w-]+)\//, ":#{namespace || client.user.username}/")
       end
 
       # @return [Gitlab::ObjectifiedHash] Information about the forked project
       # @param [ControlMod] the module you want to fork
       def create_repo_fork(url, options = {} )
-        namespace = options[:namespace] || Gitlab.user.username
+        namespace = options[:namespace] || client.user.username
         new_url = swap_namespace(url, namespace)
         repo = repo_exists?(new_url)
         unless repo
           upstream_repo_id = repo_id(url)
           logger.info("Forking project from #{url} to #{new_url}")
-          repo = Gitlab.create_fork(upstream_repo_id)
+          repo = client.create_fork(upstream_repo_id)
           # gitlab lies about having completed the forking process, so lets sleep until it is actually done
           loop do
             sleep(1)
@@ -102,7 +101,7 @@ module ReleaseManager
       def repo_exists?(url)
         upstream_repo_id = repo_id(url)
         begin
-          Gitlab.project(upstream_repo_id)
+          client.project(upstream_repo_id)
         rescue Gitlab::Error::NotFound => e
           false
         end
@@ -116,16 +115,6 @@ module ReleaseManager
         proj = url.match(/:(.*\/.*)\.git/)
         raise RepoNotFound unless proj
         proj[1]
-      end
-
-      # @return String - the branch name that was created
-      def create_repo_branch(repo_id, branch_name)
-        Gitlab.repo_create_branch(repo_id, branch_name)
-      end
-
-      def clone_repo(mod_name, url)
-        path = File.join(repos_dir, mod_name)
-        Rugged::Repository.clone_at(url, path, checkout_branch: name)
       end
     end
   end
