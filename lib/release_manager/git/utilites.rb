@@ -263,6 +263,13 @@ module ReleaseManager
         logger.info("Cherry picking commit with id: #{commit}")
       end
 
+      # @parma src [Rubbed::Object] - the rugged object to compare from
+      # @parma dst [Rubbed::Object] - the rugged object to compare to
+      # @return [Array[String]] the changed files in the commit or all the commits in the diff between src and dst
+      def changed_files(src, dst = nil)
+        dst ||= src.parents.first
+        src.diff(dst).deltas.map { |d| [d.old_file[:path], d.new_file[:path]] }.flatten.uniq
+      end
     end
   end
 end
