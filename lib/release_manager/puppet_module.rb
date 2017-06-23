@@ -1,6 +1,7 @@
 require 'json'
 require 'release_manager/errors'
 require 'release_manager/workflow_action'
+require 'release_manager/vcs_manager'
 require 'release_manager/git/utilites'
 require 'rugged'
 
@@ -11,6 +12,8 @@ class PuppetModule < WorkflowAction
 
  include ReleaseManager::Git::Utilities
  include ReleaseManager::Logger
+ include ReleaseManager::VCSManager
+
 
  def initialize(mod_path, upstream = nil)
    raise ModNotFoundException if mod_path.nil?
@@ -82,7 +85,6 @@ class PuppetModule < WorkflowAction
  end
 
  def latest_tag
-   Gem::Version.new('0.0.12') >= Gem::Version.new('0.0.2')
    v = tags.sort do |a,b|
     Gem::Version.new(a.tr('v', '')) <=> Gem::Version.new(b.tr('v', ''))
    end
@@ -103,8 +105,15 @@ class PuppetModule < WorkflowAction
    metadata['version']
  end
 
- def tag_module
-   `git --git-dir=#{path}/.git tag -m 'v#{version}' v#{version}`
+ # @param remote [Boolean] - create the tag remotely using the remote VCS
+ def tag_module(remote = false)
+   if remote
+     # TODO add release_notes as the last argument, currently nil
+     # where we get the latest from the changelog
+     create_tag(source, "v#{version}", repo.head.target_id, "v#{version}", nil)
+   else
+     create_local_tag("v#{version}", repo.head.target_id)
+   end
  end
 
  def bump_patch_version
@@ -183,17 +192,40 @@ class PuppetModule < WorkflowAction
  end
 
  # @return [String] the oid of the commit that was created
- def commit_metadata
-   to_metadata_file
-   add_file(metadata_file)
-   create_commit("[ReleaseManager] - bump version to #{version}")
+ # @param remote [Boolean] if true creates the commit on the remote repo
+ def commit_metadata(remote = false)
+   message = "[ReleaseManager] - bump version to #{version}"
+   if remote
+     actions = [{
+       action: 'update',
+       file_path: metadata_file.split(repo.workdir).last,
+       content: JSON.pretty_generate(metadata)
+     }]
+     obj = vcs_create_commit(source, 'master', message, actions)
+     obj.id if obj
+   else
+     to_metadata_file
+     add_file(metadata_file)
+     create_commit(message)
+   end
  end
 
  # @return [String] the oid of the commit that was created
- def commit_metadata_source
-   to_metadata_file
-   add_file(metadata_file)
-   create_commit("[ReleaseManager] - change source to #{source}")
+ def commit_metadata_source(remote = false)
+   message = "[ReleaseManager] - change source to #{source}"
+   if remote
+     actions = [{
+       action: 'update',
+       file_path: metadata_file.split(repo.workdir).last,
+       content: JSON.pretty_generate(metadata)
+     }]
+     obj = vcs_create_commit(source, 'master', message, actions)
+     obj.id if obj
+   else
+     to_metadata_file
+     add_file(metadata_file)
+     create_commit(message)
+   end
  end
 
  def to_metadata_file
@@ -209,3 +241,5 @@ class PuppetModule < WorkflowAction
  end
 
 end
+
+
