@@ -134,6 +134,11 @@ module ReleaseManager
         repo.head.name.sub(/^refs\/heads\//, '')
       end
 
+      def create_local_tag(name, ref, message = nil)
+        message ||= name
+        repo.tags.create(name, ref, {:message => message} )
+      end
+
       def checkout_branch(name)
         if current_branch != name
           logger.info("Checking out branch: #{name} for #{path}")
