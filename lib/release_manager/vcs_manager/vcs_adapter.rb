@@ -51,6 +51,23 @@ module ReleaseManager
       def create_tag(url, tag_name, ref, message = nil, description = nil)
         raise NotImplementedError
       end
+
+      # Creates a single commit with one or more changes
+      #
+      # @example
+      # create_commit(2726132, 'master', 'refactors everything', [{action: 'create', file_path: '/foo.txt', content: 'bar'}])
+      # create_commit(2726132, 'master', 'refactors everything', [{action: 'delete', file_path: '/foo.txt'}])
+      #
+      # @param [String] url - a git url
+      # @param [String] branch the branch name you wish to commit to
+      # @param [String] message the commit message
+      # @param [Array[Hash]] An array of action hashes to commit as a batch. See the next table for what attributes it can take.
+      # @option options [String] :author_email the email address of the author
+      # @option options [String] :author_name the name of the author
+      # @return [Gitlab::ObjectifiedHash] hash of commit related data
+      def vcs_create_commit(url, branch, message, actions, options={})
+        raise NotImplementedError
+      end
     end
   end
 end
