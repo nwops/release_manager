@@ -9,7 +9,7 @@ require 'forwardable'
 
 class Sandbox
   attr_reader :modules, :name, :repos_dir, :options,
-              :control_repo, :module_names, :control_repo_path, :vcs
+              :control_repo, :module_names, :control_repo_path
 
   include ReleaseManager::VCSManager
   include ReleaseManager::Logger
@@ -20,7 +20,6 @@ class Sandbox
     @repos_dir = repos_dir
     @module_names = modules
     @control_repo_path = control_repo_path
-    @vcs = ReleaseManager::VCSManager.default_instance
     @options = options
   end
 
