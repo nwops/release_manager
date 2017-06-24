@@ -100,6 +100,7 @@ module ReleaseManager
       # @return [Gitlab::ObjectifiedHash]
       def create_tag(url, tag_name, ref, message = nil, description = nil)
         id = repo_id(url)
+        logger.info("Creating tag #{tag_name} which points to #{ref}")
         client.create_tag(id, tag_name, ref, message, description)
       end
 
@@ -154,6 +155,7 @@ module ReleaseManager
       # @return [Gitlab::ObjectifiedHash] hash of commit related data
       def vcs_create_commit(url, branch, message, actions, options={})
         project = name_to_id(repo_id(url))
+        logger.info("Creating commit #{message}")
         client.create_commit(project, branch, message, actions, options)
       end
     end

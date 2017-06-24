@@ -136,6 +136,7 @@ module ReleaseManager
 
       def create_local_tag(name, ref, message = nil)
         message ||= name
+        logger.info("Creating tag #{name} which points to #{ref}")
         repo.tags.create(name, ref, {:message => message} )
       end
 
@@ -238,6 +239,7 @@ module ReleaseManager
       #   logger.info("Created commit #{oid} with #{message}")
       #   index.write
       #   #repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
+      #   repo.save
       #   oid
       # end
 
