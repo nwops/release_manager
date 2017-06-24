@@ -15,6 +15,7 @@ class Changelog < WorkflowAction
 
   include ReleaseManager::Git::Utilities
   include ReleaseManager::Logger
+  include ReleaseManager::VCSManager
 
   def initialize(module_path, version, options = {})
     @options = options
@@ -22,58 +23,26 @@ class Changelog < WorkflowAction
     @version = version
   end
 
-  def create_changelog_file
-    return if File.exists?(changelog_file)
-    contents = "# Module Name\n\n## Unreleased\n"
-    File.write(changelog_file, contents)
-    logger.info("Creating initial changelog file")
-    commit_changelog("[ReleaseManager] - create empty changelog")
+  def empty_changelog_contents
+    "# #{module_name}\n\n## Unreleased\n"
+  end
+
+  def module_name
+    metadata['name']
   end
 
   def path
     @root_dir
   end
 
-  def run
-    create_changelog_file
-    # write the new changelog unless it does not need updating
-    if already_released? 
+  def run(remote = false)
+    if already_released?
       logger.fatal "Version #{version} had already been released, did you bump the version manually?"
       exit 1
-    else
-      File.write(changelog_file, new_content)
-      commit_changelog if options[:commit]
-      logger.info "The changelog has been updated to version #{version}"
     end
-  end
-
-  def self.run
-    options = {}
-    OptionParser.new do |opts|
-      opts.program_name = 'bump_changelog'
-      opts.version = ReleaseManager::VERSION
-      opts.on_head(<<-EOF
-
-Summary: updates the changelog.md file with the new
-         version by reading the metadata.json file
-
-EOF
-)
-      opts.on("-c", "--[no-]commit", "Commit the updated changelog") do |c|
-	options[:commit] = c
-      end
-      opts.on("-f", "--changelog FILE", "Path to the changelog file") do |c|
-	options[:file] = c
-      end
-    end.parse!
-    unless options[:file]
-      puts "Must supply --changelog FILE"
-      exit 1
-    end
-    module_path = File.dirname(options[:file])
-    puppet_module = PuppetModule.new(module_path)   
-    log = Changelog.new(module_path, puppet_module.version, options)
-    log.run
+    File.write(changelog_file, new_content) unless remote
+    commit_changelog(nil, remote) if options[:commit]
+    logger.info "The changelog has been updated to version #{version}"
   end
 
   # @returns [String] the full path to the change log file
@@ -83,7 +52,11 @@ EOF
 
   # @returns [Array[String]]
   def changelog_lines
-    @changelog_lines ||= File.readlines(changelog_file)
+    unless @changelog_lines
+      @changelog_lines = File.exists?(changelog_file) ?
+          File.readlines(changelog_file) : empty_changelog_contents.lines
+    end
+    @changelog_lines
   end
 
   # @returns [Integer] line number of where the word unreleased is located
@@ -115,16 +88,42 @@ EOF
   end
 
   # @return [String] the oid of the commit that was created
-  def commit_changelog(msg = nil)
-    add_file(changelog_file)
+  def commit_changelog(msg = nil, remote = false)
     message = msg || "[ReleaseManager] - bump changelog to version #{version}"
-    create_commit(message)
+    if remote
+      actions = [{
+         action: 'update',
+         file_path: changelog_file.split(repo.workdir).last,
+         content: new_content
+      }]
+      obj = vcs_create_commit(source, 'master', message, actions)
+      obj.id if obj
+    else
+      add_file(changelog_file)
+      create_commit(message)
+    end
   end
 
   # checks to make sure the unreleased line is valid, and the file exists
   def self.check_requirements(path)
     log = new(path, nil)
     log.unreleased_index if File.exists?(log.changelog_file)
+  end
+
+  private
+
+  # @returns [Hash] the metadata object as a ruby hash
+  def metadata
+    unless @metadata
+      metadata_file =File.join(path, 'metadata.json')
+      raise ModNotFoundException unless File.exists?(metadata_file)
+      @metadata ||= JSON.parse(File.read(metadata_file))
+    end
+    @metadata
+  end
+
+  def source
+    metadata['source']
   end
 end
 

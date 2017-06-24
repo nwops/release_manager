@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-
 require 'release_manager'
+require 'release_manager/cli/bump_changelog_cli'
 
-Changelog.run
+ReleaseManager::BumpChangelogCli.run
+
