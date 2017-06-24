@@ -5,7 +5,6 @@ require 'release_manager/vcs_manager'
 require 'release_manager/git/utilites'
 require 'rugged'
 
-
 class PuppetModule < WorkflowAction
  attr_reader :name, :metadata_file, :path, :version, :upstream
  attr_writer :version, :source
@@ -107,15 +106,17 @@ class PuppetModule < WorkflowAction
 
  # @param remote [Boolean] - create the tag remotely using the remote VCS
  def tag_module(remote = false)
+   id = repo.head.target_id
    if remote
      # TODO add release_notes as the last argument, currently nil
      # where we get the latest from the changelog
-     create_tag(source, "v#{version}", repo.head.target_id, "v#{version}", nil)
+     create_tag(source, "v#{version}", id, "v#{version}", nil)
    else
-     create_local_tag("v#{version}", repo.head.target_id)
+     create_local_tag("v#{version}", id)
    end
  end
 
+ # Updates the version in memory
  def bump_patch_version
     return unless version
     pieces = version.split('.')
@@ -124,6 +125,7 @@ class PuppetModule < WorkflowAction
     metadata['version'] = pieces.join('.')
  end
 
+ # Updates the version in memory
  def bump_minor_version
     return unless version
     pieces = version.split('.')
@@ -133,6 +135,7 @@ class PuppetModule < WorkflowAction
     metadata['version'] = pieces.join('.')
  end
 
+ # Updates the version in memory
  def bump_major_version
     return unless version
     pieces = version.split('.')
@@ -166,16 +169,10 @@ class PuppetModule < WorkflowAction
 
  # ensures the dev branch has been created and is up to date
  def create_dev_branch
-   `#{git_command} fetch upstream`
-   raise GitError unless $?.success?
-   #puts "#{git_command} checkout -b #{src_branch} upstream/#{src_branch}"
-  `#{git_command} checkout -b #{src_branch} upstream/#{src_branch}` unless branch_exists?(src_branch)
-   raise GitError unless $?.success?
+   fetch('upstream')
+   create_branch(src_branch, "upstream/#{src_branch}")
    # ensure we have updated our local branch
-   #puts "#{git_command} checkout #{src_branch}"
-  `#{git_command} checkout #{src_branch}`
-   raise GitError unless $?.success?
-   #puts "#{git_command} rebase upstream/#{src_branch}"
+   checkout_branch(src_branch) unless current_branch == src_branch
   `#{git_command} rebase upstream/#{src_branch}`
    raise GitError unless $?.success?
  end

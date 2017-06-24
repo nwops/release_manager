@@ -13,6 +13,7 @@
 #
 #  Run with -h to see the help
 require 'release_manager/release'
+require 'release_manager/remote_release'
 require 'optparse'
 require 'release_manager/version'
 module ReleaseManager
@@ -49,8 +50,12 @@ Summary: Bumps the module version to the next revision and
         opts.on('--verbose', "Extra logging") do |c|
           options[:verbose] = c
         end
+        opts.on('-r', '--remote-release', "Perform a remote release (For CI systems)") do |c|
+          options[:remote] = true
+        end
       end.parse!
-      r = Release.new(options[:path], options)
+      r = options[:remote] ?
+          RemoteRelease.new(options[:path], options) : Release.new(options[:path], options)
       r.run
     end
   end
