@@ -4,9 +4,12 @@ require 'release_manager/git/utilites'
 
 class ControlRepo
   attr_accessor :path, :repo, :url
+  DEFAULT_BRANCH = ENV['CONTROL_REPO_DEFAULT_BRANCH'] || 'dev'
+  DEFAULT_BRANCHES = ENV['CONTROL_REPO_DEFAULT_BRANCHES'] || %w(dev qa integration acceptance production)
 
   include ReleaseManager::Git::Utilities
   include ReleaseManager::Logger
+  include ReleaseManager::VCSManager
 
   def initialize(path, url = nil)
     @path = path
@@ -30,6 +33,17 @@ class ControlRepo
       @puppetfile.base_path = path
     end
     @puppetfile
+  end
+
+  def commit(message, diff_obj, branch_name, remote = false)
+    message = "[ReleaseManager] - #{message}"
+    if remote
+      actions = diff_2_commit(diff_obj)
+      obj = vcs_create_commit(url, branch_name, message, actions)
+      obj.id if obj
+    else
+      create_commit(message)
+    end
   end
 
 end
