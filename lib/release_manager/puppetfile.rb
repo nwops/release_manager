@@ -8,6 +8,12 @@ class Puppetfile
   attr_accessor :modules, :puppetfile, :data, :base_path, :puppetmodule
   BUMP_TYPES = %w{patch minor major}
 
+  include ReleaseManager::Git::Utilities
+  include ReleaseManager::Logger
+  include ReleaseManager::VCSManager
+
+  alias_method :path, :base_path
+
   # @param [String] puppetfile - the path to the puppetfile
   def initialize(puppetfile = 'Puppetfile')
     @puppetfile = puppetfile
@@ -22,17 +28,21 @@ class Puppetfile
     @base_path ||= File.dirname(puppetfile)
   end
 
-  def git_command
-    "git --work-tree=#{base_path} --git-dir=#{base_path}/.git"
-  end
-
-  def commit(message)
-    puts `#{git_command} add #{puppetfile}`
-    puts `#{git_command} commit -n -m "[ReleaseManager] - #{message}"`
-  end
-
-  def current_branch
-    `#{git_command} rev-parse --abbrev-ref HEAD`
+  def commit(message, remote = false)
+    message = "[ReleaseManager] - #{message}"
+    if remote
+      actions = [{
+         action: 'update',
+         file_path: puppetfile.split(repo.workdir).last,
+         content: to_s
+      }]
+      obj = vcs_create_commit(source, 'master', message, actions)
+      obj.id if obj
+    else
+      write_to_file
+      add_file(puppetfile)
+      create_commit(message)
+    end
   end
 
   def add_module(name, metadata)
@@ -40,8 +50,8 @@ class Puppetfile
   end
 
   def push(remote, branch, force = false)
-    opts = force ? '-f' : ''
-    `#{git_command} push #{remote} #{branch} #{opts}`
+    push_branch(remote, branch, force)
+    push_tags(remote)
   end
 
   def data
