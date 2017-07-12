@@ -6,7 +6,7 @@ module ReleaseManager
     attr_accessor :vcs
     def_delegators :vcs, :add_ssh_key, :add_permission, :create_repo_fork, :swap_namespace, :create_tag,
                    :clone_repo, :create_repo_branch, :repo_exists?, :repo_id, :add_permissions,
-                   :vcs_create_commit
+                   :vcs_create_commit, :create_merge_request, :diff_2_commit, :vcs_create_branch, :rebase_mr
 
     def vcs
       @vcs ||= ReleaseManager::VCSManager.default_instance

@@ -104,7 +104,95 @@ module ReleaseManager
         client.create_tag(id, tag_name, ref, message, description)
       end
 
+      # Creates a single commit with one or more changes
+      #
+      #
+      # @example
+      # create_commit(2726132, 'master', 'refactors everything', [{action: 'create', file_path: '/foo.txt', content: 'bar'}])
+      # create_commit(2726132, 'master', 'refactors everything', [{action: 'delete', file_path: '/foo.txt'}])
+      #
+      # @param [String] url - a git url
+      # @param [String] branch the branch name you wish to commit to
+      # @param [String] message the commit message
+      # @param [Array[Hash]] An array of action hashes to commit as a batch. See the next table for what attributes it can take.
+      # @option options [String] :author_email the email address of the author
+      # @option options [String] :author_name the name of the author
+      # @return [Gitlab::ObjectifiedHash] hash of commit related data
+      def vcs_create_commit(url, branch, message, actions, options={})
+        if actions.empty?
+          logger.info("Nothing to commit, no changes")
+          return false
+        end
+        project = name_to_id(repo_id(url))
+        logger.info("Creating commit #{message}")
+        client.create_commit(project, branch, message, actions, options)
+      end
+
+      # Creates a merge request.
+      #
+      # @example
+      #   create_merge_request(5, 'New merge request',
+      #     { source_branch: 'source_branch', target_branch: 'target_branch' })
+      #   create_merge_request(5, 'New merge request',
+      #     { source_branch: 'source_branch', target_branch: 'target_branch', assignee_id: 42 })
+      #
+      # @param [String] url - a git url
+      # @param  [String] title The title of a merge request.
+      # @param  [Hash] options A customizable set of options.
+      # @option options [String] :source_branch (required) The source branch name.
+      # @option options [String] :target_branch (required) The target branch name.
+      # @option options [Integer] :assignee_id (optional) The ID of a user to assign merge request.
+      # @option options [Integer] :target_project_url (optional) The target project url.
+      # @return [Gitlab::ObjectifiedHash] Information about created merge request.
+      def create_merge_request(url, title, options={})
+        project = name_to_id(repo_id(url))
+        options[:target_project_id] = name_to_id(repo_id(options.delete(:target_project_url))) if options[:target_project_url]
+        raise ArgumentError unless options[:source_branch] and options[:target_branch]
+        output = client.create_merge_request(project, title, options)
+        logger.info("Merge request created: #{output.web_url}")
+        output
+      end
+
+      # @param Array[Hash] the changed files in the commit or all the commits in the diff between src and dst
+      # @return Array[Hash] the gitlab specific hash of action hashes
+      def diff_2_commit(diff_obj)
+        diff_obj.map do |obj|
+          {
+              action: convert_status(obj[:status]),
+              file_path: obj[:new_path],
+              content: obj[:content]
+          }
+        end
+      end
+
+      # @param [String] url - a git url
+      # @param  [String]  name The name of the new branch.
+      # @param  [String]  ref The ref (commit sha, branch name, or another tag) the tag will point to.
+      def vcs_create_branch(url, name, ref)
+        project = name_to_id(repo_id(url))
+        logger.info("Creating remote branch #{name} from #{ref}")
+        client.create_branch(project, name, ref)
+      end
+
       private
+
+      # converts the git status symbol to the status required for gitlab
+      # @param [Symbol] status the status symbol
+      # @return [String] the string conversion of the status to gitlab action name
+      def convert_status(status)
+        case status
+          when :added
+            'create'
+          when :deleted
+            'delete'
+          when :modified
+            'update'
+          when :renamed
+            'move'
+          else
+            raise ArgumentError
+        end
+      end
 
       # @param namespace [String] - the namespace / project name
       # @return [Integer] - the id number of the project
@@ -139,25 +227,20 @@ module ReleaseManager
         url.gsub(/\:([\w-]+)\//, ":#{namespace || client.user.username}/")
       end
 
-      # Creates a single commit with one or more changes
-      #
-      #
-      # @example
-      # create_commit(2726132, 'master', 'refactors everything', [{action: 'create', file_path: '/foo.txt', content: 'bar'}])
-      # create_commit(2726132, 'master', 'refactors everything', [{action: 'delete', file_path: '/foo.txt'}])
-      #
-      # @param  [Integer, String] project The ID or name of a project.
-      # @param [String] branch the branch name you wish to commit to
-      # @param [String] message the commit message
-      # @param [Array[Hash]] An array of action hashes to commit as a batch. See the next table for what attributes it can take.
-      # @option options [String] :author_email the email address of the author
-      # @option options [String] :author_name the name of the author
-      # @return [Gitlab::ObjectifiedHash] hash of commit related data
-      def vcs_create_commit(url, branch, message, actions, options={})
-        project = name_to_id(repo_id(url))
-        logger.info("Creating commit #{message}")
-        client.create_commit(project, branch, message, actions, options)
-      end
+    end
+  end
+end
+
+class Gitlab::Client
+  # monkey patch correct api method until next version is released
+  module Commits
+    def create_commit(project, branch, message, actions, options={})
+      payload = {
+          branch: branch,
+          commit_message: message,
+          actions: actions,
+      }.merge(options)
+      post("/projects/#{url_encode project}/repository/commits", body: payload)
     end
   end
 end
