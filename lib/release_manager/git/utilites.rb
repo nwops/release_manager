@@ -3,6 +3,7 @@ require 'uri'
 
 module ReleaseManager
   module Git
+    STATUSES = [:added, :deleted, :modified, :renamed, :copied, :ignored, :untracked, :typechange]
     module Utilities
 
       def repo
@@ -113,9 +114,12 @@ module ReleaseManager
       end
 
       # @param [String] remote_name - the remote name to push the branch to
-      def push_branch(remote_name, branch)
+      def push_branch(remote_name, branch, force = false)
         remote = find_or_create_remote(remote_name)
-        refs = [repo.branches[branch].canonical_name]
+        b = repo.branches[branch]
+        raise InvalidBranchName.new("Branch #{branch} does not exist locally, cannot push") unless b
+        refs = [b.canonical_name]
+        refs = refs.map { |r| r.prepend('+') } if force
         logger.info("Pushing branch #{branch} to remote #{remote.url}")
         remote.push(refs, credentials: credentials)
       end
@@ -134,6 +138,12 @@ module ReleaseManager
         repo.head.name.sub(/^refs\/heads\//, '')
       end
 
+      # @param [String] - the name of the branch
+      # @return [Boolean] returns true if the current branch is the name
+      def current_branch?(name)
+        current_branch != name
+      end
+
       def create_local_tag(name, ref, message = nil)
         message ||= name
         logger.info("Creating tag #{name} which points to #{ref}")
@@ -141,7 +151,7 @@ module ReleaseManager
       end
 
       def checkout_branch(name)
-        if current_branch != name
+        if current_branch?(name)
           logger.info("Checking out branch: #{name} for #{path}")
           repo.checkout(name)
         else
@@ -178,7 +188,7 @@ module ReleaseManager
       # @return [MatchData] MatchData if the remote name is a url
       # Is the name actually a url?
       def git_url?(name)
-        /((git|ssh|http(s)?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-~]+)(\.git)(\/)?/.match(name)
+        /([A-Za-z0-9]+@|http(|s)\:\/\/)([A-Za-z0-9.]+)(:|\/)([A-Za-z0-9\/]+)(\.git)?/.match(name)
       end
 
       # @return [String] - the author name found in the config
@@ -196,19 +206,52 @@ module ReleaseManager
         {:email=>author_email, :time=>Time.now, :name=>author_name}
       end
 
-      # # @param [String] file - the path to the file you want to add
-      # def add_file(file)
-      #   return unless File.exists?(file)
-      #   index = repo.index
-      #   file.slice!(repo.workdir)
-      #   index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
-      #   index.write
-      # end
+      # @param pathspec Array[String] path specs as strings in an array
+      def add_all(pathspec = [])
+        index = repo.index
+        index.add_all
+        index.write
+      end
 
       # @param [String] file - the path to the file you want to add
       def add_file(file)
+        return add_all if file == '.'
+        index = repo.index
+        file.slice!(repo.workdir)
+        index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
+        index.write
+      end
+
+      # @param [String] file - the path to the patch file you want to apply
+      def apply_patch(file)
         # TODO: change this to rugged implementation
-      `git --work-tree=#{path} --git-dir=#{repo.path} add #{file}`
+        logger.debug("Applying patch #{file}")
+        `cd #{path} && #{git_command} apply #{file}`
+      end
+
+      # [Rugged::Diff] a rugged diff object
+      # Not fully tested
+      def apply_diff(diff)
+        diff.deltas.each do |d|
+          case d.status
+            when :deleted
+              remove_file(d.new_file[:path])
+              File.delete(File.join(path, path))
+            when :added, :modified
+              add_file(d.new_file[:path])
+            when :renamed
+              remove_file(d.old_file[:path])
+              File.delete(File.join(path, path))
+              add_file(d.new_file[:path])
+            else
+              logger.warn("File has a status of #{d.status}")
+          end
+        end
+      end
+
+      # @return [String] the git command with
+      def git_command
+        @git_command ||= "git --work-tree=#{path} --git-dir=#{repo.path}"
       end
 
       # @param [String] file - the path to the file you want to remove
@@ -225,8 +268,11 @@ module ReleaseManager
       #   logger.info repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
       #
       #   index = repo.index
+      # if index.diff.deltas.count < 1
+      #   logger.info("Nothing to commit")
+      #   return false
+      # end
       #   index.read_tree repo.head.target.tree unless repo.empty?
-      #   require 'pry'; binding.pry
       #   #repo.lookup
       #   tree_new = index.write_tree repo
       #   oid = Rugged::Commit.create(repo,
@@ -246,17 +292,17 @@ module ReleaseManager
       # @param [String] message - the message you want in the commit
       # TODO: change this to rugged implementation
       def create_commit(message)
-        output = `git --work-tree=#{path} --git-dir=#{repo.path} commit --message '#{message}' 2>&1`
+        output = `#{git_command} commit --message '#{message}' 2>&1`
         if $?.success?
           logger.info("Created commit #{message}")
         else
-          logger.error output
+          if output =~ /nothing\sto\scommit/
+            logger.info("Nothing to commit")
+          else
+            logger.error output
+          end
+          return false
         end
-      end
-
-      # @return [String] the current branch name
-      def current_branch
-        repo.head.name.sub(/^refs\/heads\//, '')
       end
 
       def cherry_pick(commit)
@@ -265,12 +311,55 @@ module ReleaseManager
         logger.info("Cherry picking commit with id: #{commit}")
       end
 
-      # @parma src [Rubbed::Object] - the rugged object to compare from
-      # @parma dst [Rubbed::Object] - the rugged object to compare to
+      # @param src [Rubbed::Object] - the rugged object to compare from
+      # @param dst [Rubbed::Object] - the rugged object to compare to
       # @return [Array[String]] the changed files in the commit or all the commits in the diff between src and dst
       def changed_files(src, dst = nil)
         dst ||= src.parents.first
         src.diff(dst).deltas.map { |d| [d.old_file[:path], d.new_file[:path]] }.flatten.uniq
+      end
+
+      # @param oid [String] the oid of the file object
+      # @return [String] the contents of the file from the object
+      def get_content(oid)
+        return nil if oid =~ /0000000000000000000000000000000000000000/
+        obj = repo.read(oid)
+        obj.data
+      end
+
+      # @param src [Rugged::Object] - the rugged object or string to compare from
+      # @param dst [Rugged::Object] - the rugged object or string to compare to
+      # @return Array[Hash] the changed files in the commit or all the commits in the diff between src and dst
+      # with status, old_path, new_path, and content
+      # status can be one of: :added, :deleted, :modified, :renamed, :copied, :ignored, :untracked, :typechange
+      def create_diff_obj(src, dst = nil)
+        diff = create_diff(src, dst)
+        diff.deltas.map do |d|
+          { old_path: d.old_file[:path], status: d.status,
+            new_path: d.new_file[:path], content: get_content(d.new_file[:oid])
+          }
+        end
+      end
+
+      # @param src [Rugged::Object] - the rugged object or string to compare from
+      # @param dst [Rugged::Object] - the rugged object or string to compare to, defaults to parent
+      # @return [Rugged::Diff] a rugged diff object between src and dst
+      def create_diff(src, dst = nil)
+        src = repo.lookup(find_ref(src))
+        dst ||= repo.lookup(src.parents.first)
+        dst = find_ref(dst)
+        src.diff(dst)
+      end
+
+      # @param sha_or_ref [String] - the name or sha of the ref
+      # @return [String] the oid of the sha or ref
+      def find_ref(sha_or_ref)
+        case sha_or_ref
+          when Rugged::Object
+            sha_or_ref.oid
+          else
+            repo.rev_parse_oid(sha_or_ref)
+        end
       end
     end
   end
