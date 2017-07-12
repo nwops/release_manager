@@ -32,6 +32,9 @@ def create_control_repo
   begin
     proj = client.create_project('control-repo', namespace_id: devops_group.id)
     client.create_branch(proj.id, 'dev')
+    client.create_branch(proj.id, 'qa')
+    client.create_branch(proj.id, 'integration')
+    client.create_branch(proj.id, 'acceptance')
     client.create_branch(proj.id, 'production')
     create_puppet_file(proj)
   rescue Gitlab::Error::BadRequest => e
@@ -86,10 +89,10 @@ def mod(name, *args)
   puppetfile_content << "mod '#{name}',\n  #{data}\n\n"
 end
 
-eval(modules)
-create_control_repo
-
-client.create_user('joe@foo.org', 'password', 'joe', { name: 'Joe Smith' })
+# eval(modules)
+# create_control_repo
+#
+# client.create_user('joe@foo.org', 'password', 'joe', { name: 'Joe Smith' })
 
 # add the ssh key
 # create_ssh_key(title, key)
