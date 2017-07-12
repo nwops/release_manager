@@ -12,7 +12,8 @@ describe ModuleDeployer do
         commit: false,
         push: false,
         remote: nil,
-        dry_run: true
+        dry_run: true,
+        auto: true
     }
   end
 
@@ -37,19 +38,21 @@ describe ModuleDeployer do
   describe 'real run' do
     let(:options) do
       {
-          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          puppetfile: File.join(fixtures_dir, 'r10k-control', 'Puppetfile'),
           modulepath: File.join(fixtures_dir, 'puppet-debug'),
           commit: true,
           push: true,
           remote: 'git@github.com/nwops/something.git',
-          dry_run: false
+          dry_run: false,
+          auto: true
       }
     end
 
     it 'creates file' do
+      allow_any_instance_of(Rugged::Remote).to receive(:push).and_return(true)
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
-      expect(deployer.puppetfile).to receive(:write_to_file)
+      expect(deployer.puppetfile).to receive(:write_to_file).at_least(:once)
       expect{deployer.run}.to_not raise_error
     end
 
@@ -70,12 +73,13 @@ describe ModuleDeployer do
   describe 'real run without push' do
     let(:options) do
       {
-          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          puppetfile: File.join(fixtures_dir, 'r10k-control', 'Puppetfile'),
           modulepath: File.join(fixtures_dir, 'puppet-debug'),
           commit: true,
           push: false,
           remote: 'git@github.com/nwops/something.git',
-          dry_run: false
+          dry_run: false,
+          auto: true
       }
     end
 
@@ -100,7 +104,8 @@ describe ModuleDeployer do
           commit: false,
           push: false,
           remote: 'git@github.com/nwops/something.git',
-          dry_run: false
+          dry_run: false,
+          auto: true
       }
     end
 
@@ -123,7 +128,8 @@ describe ModuleDeployer do
           commit: true,
           push: true,
           remote: 'git@github.com/nwops/something.git',
-          dry_run: true
+          dry_run: true,
+          auto: true
       }
     end
 
@@ -136,8 +142,4 @@ describe ModuleDeployer do
       expect{deployer.run.to match(%r{Would have just pushed branch: dev to remote: git@github.com/nwops/something.git})}
     end
   end
-
-
-
-
 end

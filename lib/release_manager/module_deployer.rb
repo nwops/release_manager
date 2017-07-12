@@ -45,8 +45,8 @@ class ModuleDeployer
   # raises
   def add_module(puppet_module)
     unless puppetfile.mod_exists?(puppet_module.name)
-      answer = ask("The #{puppet_module.name} module does not exist, do you want to add it? (y/n): ", String) { |q| q =~ /y|n/i }.downcase
-      if answer == 'y'
+      answer = ask("The #{puppet_module.name} module does not exist, do you want to add it? (y/n): ", String) { |q| q =~ /y|n/i }.downcase unless options[:auto]
+      if answer == 'y' or options[:auto]
         puppetfile.add_module(puppet_module.name, git: puppet_module.repo, tag: "v#{puppet_module.version}") unless options[:dry_run]
       end
     end
