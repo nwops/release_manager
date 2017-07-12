@@ -63,4 +63,42 @@ describe PuppetModule do
     allow(puppetmodule).to receive(:tags).and_return(tags)
     expect(puppetmodule.latest_tag).to eq('v0.0.12')
   end
+
+  describe 'r10k-control' do
+    let(:path) do
+      File.join(fixtures_dir, 'r10k-control')
+    end
+
+    it 'correct branch' do
+      expect(puppetmodule.src_branch).to eq('dev')
+    end
+
+    it 'already_latest? returns true' do
+      allow(puppetmodule).to receive(:tags).and_return(tags)
+      allow(puppetmodule).to receive(:latest_tag).and_return('v0.0.12')
+      allow(puppetmodule).to receive(:find_ref).with('v0.0.12').and_return("852852d24923b834b0a8d616fa7322b94bbfbc95")
+      allow(puppetmodule).to receive(:find_ref).with('dev').and_return("852852d24923b834b0a8d616fa7322b94bbfbc95")
+      expect(puppetmodule.already_latest?).to be true
+    end
+
+    it 'already_latest? returns false' do
+      allow(puppetmodule).to receive(:tags).and_return(tags)
+      allow(puppetmodule).to receive(:latest_tag).and_return('v0.0.12')
+      allow(puppetmodule).to receive(:find_ref).with('v0.0.12').and_return("852852d24923b834b0a8d616fa7322b94bbfbc95")
+      allow(puppetmodule).to receive(:find_ref).with('dev').and_return("f4d7cec4ce8288a854df67cd7758b0d222a99ff0")
+      expect(puppetmodule.already_latest?).to be false
+    end
+  end
+
+  describe 'module' do
+    let(:path) do
+      File.join(fixtures_dir, 'puppet-debug')
+    end
+
+    it 'correct branch' do
+      expect(puppetmodule.src_branch).to eq('master')
+    end
+  end
+
+
 end

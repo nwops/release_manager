@@ -69,7 +69,6 @@ class ModuleDeployer
         logger.info "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}"
         if options[:commit]
           puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")
-          logger.info "Commited with message: bump #{puppet_module.name} to version #{latest_version}"
         end
         if options[:push]
           puppetfile.push(control_repo_remote, puppetfile.current_branch)

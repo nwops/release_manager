@@ -8,6 +8,6 @@
 /spec/reports/
 /tmp/
 srv/
-
+bundl
 # rspec failure tracking
 .rspec_status

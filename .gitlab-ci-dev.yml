@@ -1,0 +1,51 @@
+# setup
+# Please set the following variables in the UI
+# GITLAB_API_PRIVATE_TOKEN (token of user who should execute the scripts and create Merge requests)
+#
+before_script:
+  - gem install bundler
+  - bundle install
+stages:
+  - release
+  - deploy_release
+#before_script:
+  # Run ssh-agent (inside the build environment)
+
+  #- eval $(ssh-agent -s)
+  # Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+  #- ssh-add <(echo "$SSH_PRIVATE_KEY")
+variables:
+  GITLAB_API_ENDPOINT: "http://web/api/v4"
+  MAX_THREAD_COUNT: '30'
+  BUNDLE_DISABLE_VERSION_CHECK: '1'
+  GITLAB_API_HTTPARTY_OPTIONS: "{verify: false}"
+
+# we don't always want validation to run so we skip it if SKIP_VALIDATION is set
+validate:
+    stage: validate
+    tags: ['ruby']
+    script: if [ ! -n "${SKIP_VALIDATION}" ]; then ./scripts/validate_r10k.rb Puppetfile; fi
+
+# tags the current head and bumps the version to the next number, creating a release
+create_release:
+  stage: release
+  tags: 
+    - ruby 
+  script:
+    - bundle exec release-mod -r -a
+  only:
+    - dev@devops/r10k-control
+  when: manual
+
+deploy_to_qa:
+  tags: 
+    - ruby 
+  variables:
+    DEPLOY_BRANCH: qa
+  stage: deploy_release
+  #when: manual
+  script:
+    - bundle exec deploy-r10k -s $CI_COMMIT_REF_NAME -d $DEPLOY_BRANCH
+#  only:
+#    - tags@devops/r10k-control
+

@@ -20,15 +20,19 @@ class Release
 
   # @returns [String] the version found in the metadata file
   def version
-     dry_run? ? puppet_module.version.next : puppet_module.version
+     dry_run? ? next_version : puppet_module.version
   end
 
-  def tag 
+  def next_version
+    puppet_module.version.next
+  end
+
+  def tag(id)
     if dry_run?
       logger.info "Would have just tagged the module to #{version}"
       return
     end
-    puppet_module.tag_module 
+    puppet_module.tag_module(options[:remote], id)
   end
 
   def bump
@@ -36,18 +40,20 @@ class Release
       logger.info "Would have just bumped the version to #{version}"
       return
     end
-    puppet_module.bump_patch_version unless options[:bump]
+    raise TagExists.new("Tag v#{version} already exists") if puppet_module.tag_exists?("v#{next_version}", options[:remote])
+    version = puppet_module.bump_patch_version unless options[:bump]
     # save the update version to the metadata file, then commit
     puppet_module.commit_metadata
   end
 
+  # @return [String] - sha of the commit
   def bump_log
     if dry_run?
       logger.info "Would have just bumped the CHANGELOG to version #{version}"
       return
     end
     log = Changelog.new(puppet_module.path, version, {:commit => true})
-    log.run
+    log.run(options[:remote], puppet_module.src_branch)
   end
 
   def push
@@ -67,22 +73,25 @@ class Release
   end
 
   def check_requirements
+    @loop_count = @loop_count.to_i + 1
     begin
       PuppetModule.check_requirements(puppet_module.path)
+      raise AlreadyReleased.new("No new changes, skipping release") if puppet_module.already_latest?
       Changelog.check_requirements(puppet_module.path)
     rescue NoUnreleasedLine
       logger.fatal "No Unreleased line in the CHANGELOG.md file, please add a Unreleased line and retry"
-      exit 1
+      return false
     rescue UpstreamSourceMatch
-      logger.fatal "The upstream remote url does not match the source url in the metadata.json source"
+      logger.warn "The upstream remote url does not match the source url in the metadata.json source"
       add_upstream_remote
-      exit 1
+      return false if @loop_count > 2
+      check_requirements
     rescue InvalidMetadataSource
       logger.fatal "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git"
-      exit 1
+      return false
     rescue NoChangeLogFile
       logger.fatal "CHANGELOG.md does not exist, please create one"
-      exit 1
+      return false
     end
   end
 
@@ -101,9 +110,9 @@ class Release
     # updates the metadata.js file to the next version
     bump
     # updates the changelog to the next version based on the metadata file
-    bump_log
+    id = bump_log
     # tags the r10k-module with the version found in the metadata.json file
-    tag
+    tag(id)
     # pushes the updated code and tags to the upstream repo
     if auto_release? 
      push
@@ -121,6 +130,10 @@ class Release
   end
 
   def add_upstream_remote
+    if auto_release?
+      puppet_module.add_upstream_remote
+      return
+    end
     answer = nil
     while answer !~ /y|n/
       print "Ok to change your upstream remote from #{puppet_module.upstream}\n to #{puppet_module.source}? (y/n): "
@@ -135,7 +148,7 @@ class Release
 
   def run
     begin
-      check_requirements
+      exit -1 unless check_requirements
       puppet_module.create_dev_branch
       value = release
       unless value
@@ -145,10 +158,21 @@ class Release
       logger.info "Version #{version} has been released successfully"
       puts "This was a dry run so nothing actually happen".green if dry_run?
       exit 0
-    rescue GitError
-      logger.fatal "There was an issue when running a git command"
+    rescue Gitlab::Error::Forbidden => e
+      logger.fatal(e.message)
+      logger.fatal("You don't have access to modify the repository")
+      exit -1
+    rescue TagExists => e
+      logger.fatal(e.message)
+      exit -1
+    rescue GitError => e
+      logger.fatal "There was an issue when running a git command\n #{e.message}"
     rescue InvalidMetadataSource
       logger.fatal "The puppet module's metadata.json source field must be a git url: ie. git@someserver.com:devops/module.git"
+      exit -1
+    rescue AlreadyReleased => e
+      logger.warn(e.message)
+      exit 0
     rescue ModNotFoundException
       logger.fatal "Invalid module path for #{path}"
       exit -1

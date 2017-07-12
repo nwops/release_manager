@@ -13,7 +13,6 @@ class PuppetModule < WorkflowAction
  include ReleaseManager::Logger
  include ReleaseManager::VCSManager
 
-
  def initialize(mod_path, upstream = nil)
    raise ModNotFoundException.new("#{mod_path} is not a valid puppet module path") if mod_path.nil?
    @path = mod_path
@@ -48,15 +47,17 @@ class PuppetModule < WorkflowAction
    @metadata
  end
 
+ def already_latest?
+   return false unless latest_tag
+   up2date?(latest_tag, src_branch)
+ end
+
  def add_upstream_remote
-   if upstream != source
-     `#{git_command} remote rm upstream`
-   end
-   `#{git_command} remote add upstream #{source}`
+   add_remote(source,'upstream',true )
  end
 
  def git_upstream_url
-   `#{git_command} config --get remote.upstream.url`.chomp
+   repo.remotes['upstream'].url if remote_exists?('upstream')
  end
 
  def git_upstream_set?
@@ -64,7 +65,7 @@ class PuppetModule < WorkflowAction
  end
 
  def tags
-  `#{git_command} tag`.split("\n").map{|v| pad_version_string(v)}
+   repo.tags.map{|v| pad_version_string(v.name)}
  end
 
  def source=(s)
@@ -105,8 +106,9 @@ class PuppetModule < WorkflowAction
  end
 
  # @param remote [Boolean] - create the tag remotely using the remote VCS
- def tag_module(remote = false)
-   id = repo.head.target_id
+ # @param id [String] - the commit id to tag to
+ def tag_module(remote = false, id = nil)
+   id ||= repo.head.target_id
    if remote
      # TODO add release_notes as the last argument, currently nil
      # where we get the latest from the changelog
@@ -151,16 +153,7 @@ class PuppetModule < WorkflowAction
  end
 
  def r10k_module?
-   name =~ /r10k_control/i
- end
-
- def branch_exists?(name)
-   `#{git_command} branch |grep '#{name}$'`
-   $?.success?
- end
-
- def git_command
-   @git_command ||= "git --work-tree=#{path} --git-dir=#{path}/.git"
+   mod_name =~ /r10k[-_]?control/i
  end
 
  def upstream
@@ -172,9 +165,8 @@ class PuppetModule < WorkflowAction
    fetch('upstream')
    create_branch(src_branch, "upstream/#{src_branch}")
    # ensure we have updated our local branch
-   checkout_branch(src_branch) unless current_branch == src_branch
-  `#{git_command} rebase upstream/#{src_branch}`
-   raise GitError unless $?.success?
+   checkout_branch(src_branch)
+   rebase_branch(src_branch, src_branch, 'upstream')
  end
 
  # @returns [String] - the source branch to push to
@@ -198,7 +190,7 @@ class PuppetModule < WorkflowAction
        file_path: metadata_file.split(repo.workdir).last,
        content: JSON.pretty_generate(metadata)
      }]
-     obj = vcs_create_commit(source, 'master', message, actions)
+     obj = vcs_create_commit(source, src_branch, message, actions)
      obj.id if obj
    else
      to_metadata_file
@@ -216,12 +208,20 @@ class PuppetModule < WorkflowAction
        file_path: metadata_file.split(repo.workdir).last,
        content: JSON.pretty_generate(metadata)
      }]
-     obj = vcs_create_commit(source, 'master', message, actions)
+     obj = vcs_create_commit(source, src_branch, message, actions)
      obj.id if obj
    else
      to_metadata_file
      add_file(metadata_file)
      create_commit(message)
+   end
+ end
+
+ def tag_exists?(tag, remote = false)
+   if remote
+     remote_tag_exists?(source, tag)
+   else
+     latest_tag == tag
    end
  end
 
@@ -238,5 +238,3 @@ class PuppetModule < WorkflowAction
  end
 
 end
-
-

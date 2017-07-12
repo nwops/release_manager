@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.add_runtime_dependency "gitlab", "~> 4.1.0"
+  spec.add_runtime_dependency "gitlab", "~> 4.2.0"
   spec.add_runtime_dependency "rugged", "~> 0.26"
   spec.add_runtime_dependency "highline", '~> 1.7'
   spec.add_development_dependency "bundler", "~> 1.14"

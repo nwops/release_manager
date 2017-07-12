@@ -1,7 +1,6 @@
 source ENV['GEM_SOURCE'] ||'https://rubygems.org'
 # Specify your gem's dependencies in release_manager.gemspec
-#gem 'gitlab', '~> 4.1.0'
-gem 'gitlab', '~> 4.1.0'
+gem 'gitlab', '~> 4.2.0'
 gem 'rugged', '~> 0.26'
 gem 'highline', '~> 1.7'
 

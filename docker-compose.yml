@@ -18,7 +18,25 @@ services:
 #      - app_startup_script.sh
     volumes:
       - .:/app
-
+  runner:
+    image: 'registry.gitlab.com/gitlab-org/gitlab-ci-multi-runner:ubuntu-v9.3.0'
+    volumes:
+      - './srv/gitlab-runner/config:/etc/gitlab-runner'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    environment:
+      DOCKER_NETWORK_MODE: 'releasemanager_default'
+      RUNNER_TAG_LIST: 'ruby'
+      REGISTRATION_TOKEN: 'W_nSSWTvuYmGUmUbh65y'
+      RUNNER_NAME: 'test-runner'
+      CI_SERVER_URL: 'http://web/ci'
+      RUNNER_EXECUTOR: 'docker'
+      GITLAB_API_ENDPOINT: 'http://web/api/v4'
+      REGISTER_RUN_UNTAGGED: 'true'
+      DOCKER_IMAGE: 'ruby:2.1'
+      REGISTER_LOCKED: 'false'
+      # the token may change so this really needs to be more dynamic
+      GITLAB_API_PRIVATE_TOKEN: 'A_zJJfgE8P-8mFGK2_r9'
+      #entrypoint:
   web:
     image: 'gitlab/gitlab-ce:latest'
     restart: always

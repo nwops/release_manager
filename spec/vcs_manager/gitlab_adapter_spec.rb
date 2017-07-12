@@ -4,6 +4,7 @@ require 'release_manager/git/credentials'
 describe 'gitlab apdapter' do
   include ReleaseManager::Git::Utilities
   include ReleaseManager::VCSManager
+  include ReleaseManager::Logger
 
   let(:path) do
     File.join(fixtures_dir, 'r10k-control')
@@ -12,7 +13,7 @@ describe 'gitlab apdapter' do
   let(:diff_obj) do
     src = '9bfc0adb6200d1da7c7161091820da6d32844cc4'
     dest = 'f44882011791a4499a9818c1842ff00064e6034f'
-    create_diff_obj(repo.lookup(src), repo.lookup(dest))
+    create_diff_obj(dest, src)
   end
 
   it 'vcs' do

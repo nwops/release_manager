@@ -1,7 +1,14 @@
 # Release Manager
 ## Unreleased
  * Updates gitlab gem to 4.1
+ * Updates rugged gem to 0.26
+ * Adds deploy-r10k cli command
+ * Refactors more git commands to use rugged
+ * Adds ability to run deploy-mod  without interaction
  * Moves gitlab methods to gitlab adapter
+ * Adds support to create merge request
+ * Adds ability to remote create a commit with the changelog
+ * Adds ability to calculate changes files between two refs
 ## v0.4.0
  * Adds ability to sort the puppetfile when writing to file
 ## v0.3.1

@@ -14,11 +14,10 @@ module ReleaseManager
       def fetch(remote_name = 'upstream')
         return unless remote_exists?(remote_name)
         remote = repo.remotes[remote_name]
+        options = {credentials: credentials.call(remote.url)}
         logger.info("Fetching remote #{remote_name} from #{remote.url}")
-        remote.fetch({
-                         #progress: lambda { |output| puts output },
-                         credentials: credentials.call(remote.url)
-                     })
+        options[:certificate_check] = lambda { |valid, host| true } if ENV['GIT_SSL_NO_VERIFY']
+        remote.fetch(options)
       end
 
       def transports
@@ -111,6 +110,7 @@ module ReleaseManager
       # @param [String] name - the name of the branch to delete
       def delete_branch(name)
         repo.branches.delete(name)
+        !branch_exist?(name)
       end
 
       # @param [String] remote_name - the remote name to push the branch to
@@ -138,22 +138,28 @@ module ReleaseManager
         repo.head.name.sub(/^refs\/heads\//, '')
       end
 
-      # @param [String] - the name of the branch
+      # @param name [String] - the name of the branch
       # @return [Boolean] returns true if the current branch is the name
       def current_branch?(name)
         current_branch != name
       end
 
+      # @param name [String] - the name of the tag
+      # @param ref [String] - the ref oid the tag should point to
+      # @param message [String] - optional tag message
       def create_local_tag(name, ref, message = nil)
         message ||= name
         logger.info("Creating tag #{name} which points to #{ref}")
         repo.tags.create(name, ref, {:message => message} )
       end
 
-      def checkout_branch(name)
+      # @param name [String] - the name of the branch to checkout
+      # @return [Rugged::Branch] returns the rugged branch object
+      def checkout_branch(name, options = {})
         if current_branch?(name)
-          logger.info("Checking out branch: #{name} for #{path}")
-          repo.checkout(name)
+          logger.debug("Checking out branch: #{name} for #{path}")
+          repo.checkout(name, options)
+          logger.debug("Checked out branch: #{current_branch} for #{path}")
         else
           # already checked out
           logger.debug("Currently on branch #{name} for #{path}")
@@ -225,8 +231,11 @@ module ReleaseManager
       # @param [String] file - the path to the patch file you want to apply
       def apply_patch(file)
         # TODO: change this to rugged implementation
-        logger.debug("Applying patch #{file}")
-        `cd #{path} && #{git_command} apply #{file}`
+        logger.info("Applying patch #{file}")
+        Dir.chdir(path) do
+          output = `#{git_command} apply #{file} 2>&1`
+        end
+        raise PatchError.new(output) unless $?.success?
       end
 
       # [Rugged::Diff] a rugged diff object
@@ -247,6 +256,10 @@ module ReleaseManager
               logger.warn("File has a status of #{d.status}")
           end
         end
+      end
+
+      def up2date?(src_ref, dst_ref)
+        create_diff(src_ref, dst_ref).deltas.count < 1
       end
 
       # @return [String] the git command with
@@ -292,7 +305,10 @@ module ReleaseManager
       # @param [String] message - the message you want in the commit
       # TODO: change this to rugged implementation
       def create_commit(message)
-        output = `#{git_command} commit --message '#{message}' 2>&1`
+        output = nil
+        Dir.chdir(path) do
+          output = `#{git_command} commit --message '#{message}' 2>&1`
+        end
         if $?.success?
           logger.info("Created commit #{message}")
         else
@@ -305,6 +321,20 @@ module ReleaseManager
         end
       end
 
+      # @param [String] branch_name - the branch name you want to update
+      # @param [String] target - the target branch you want to rebase against
+      # @param [String] remote - the remote name to rebase from, defaults to local
+      # TODO: change this to rugged implementation
+      def rebase_branch(branch_name, target, remote = nil)
+        src = [remote, target].compact.join('/') # produces upstream/master
+        Dir.chdir(path) do
+          checkout_branch(branch_name)
+          logger.info("Rebasing #{branch_name} with #{src}")
+          output = `#{git_command} rebase #{src} 2>&1`
+          raise GitError.new(output) unless $?.success?
+        end
+      end
+
       def cherry_pick(commit)
         return unless commit
         repo.cherrypick(commit)
@@ -314,9 +344,11 @@ module ReleaseManager
       # @param src [Rubbed::Object] - the rugged object to compare from
       # @param dst [Rubbed::Object] - the rugged object to compare to
       # @return [Array[String]] the changed files in the commit or all the commits in the diff between src and dst
-      def changed_files(src, dst = nil)
-        dst ||= src.parents.first
-        src.diff(dst).deltas.map { |d| [d.old_file[:path], d.new_file[:path]] }.flatten.uniq
+      def changed_files(src_ref, dst_ref)
+        src = repo.lookup(find_ref(src_ref))
+        src = src.kind_of?(Rugged::Tag::Annotation) ? src.target : src
+        dst = repo.lookup(find_ref(dst_ref))
+        dst.diff(src).deltas.map { |d| [d.old_file[:path], d.new_file[:path]] }.flatten.uniq
       end
 
       # @param oid [String] the oid of the file object
@@ -332,7 +364,7 @@ module ReleaseManager
       # @return Array[Hash] the changed files in the commit or all the commits in the diff between src and dst
       # with status, old_path, new_path, and content
       # status can be one of: :added, :deleted, :modified, :renamed, :copied, :ignored, :untracked, :typechange
-      def create_diff_obj(src, dst = nil)
+      def create_diff_obj(src, dst)
         diff = create_diff(src, dst)
         diff.deltas.map do |d|
           { old_path: d.old_file[:path], status: d.status,
@@ -341,14 +373,16 @@ module ReleaseManager
         end
       end
 
-      # @param src [Rugged::Object] - the rugged object or string to compare from
-      # @param dst [Rugged::Object] - the rugged object or string to compare to, defaults to parent
+      # @param src_ref [Rugged::Object] - the rugged object or string to compare from
+      # @param dst_ref [Rugged::Object] - the rugged object or string to compare to
       # @return [Rugged::Diff] a rugged diff object between src and dst
-      def create_diff(src, dst = nil)
-        src = repo.lookup(find_ref(src))
-        dst ||= repo.lookup(src.parents.first)
-        dst = find_ref(dst)
-        src.diff(dst)
+      def create_diff(src_ref, dst_ref)
+        logger.debug("Creating a diff between #{dst_ref} and #{src_ref}")
+        src = repo.lookup(find_ref(src_ref))
+        src = src.kind_of?(Rugged::Tag::Annotation) ? src.target : src
+        dst = repo.lookup(find_ref(dst_ref))
+        dst = dst.kind_of?(Rugged::Tag::Annotation) ? dst.target : dst
+        dst.diff(src)
       end
 
       # @param sha_or_ref [String] - the name or sha of the ref

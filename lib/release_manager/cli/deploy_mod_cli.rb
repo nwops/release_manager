@@ -23,9 +23,6 @@ module ReleaseManager
         opts.on('-m', '--modulepath [MODULEPATH]', "Path to to module, defaults to: #{Dir.getwd}") do |p|
           options[:modulepath] = p
         end
-        opts.on('-r', '--remote-deploy', "Perform a remote deploy (For CI systems)") do |c|
-          options[:remote] = c
-        end
         opts.on('-c', '--commit', 'Optionally, Commit the Puppetfile change') do |p|
           options[:commit] = p
         end

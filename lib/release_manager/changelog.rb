@@ -35,14 +35,17 @@ class Changelog < WorkflowAction
     @root_dir
   end
 
-  def run(remote = false)
+  # @param remote [Boolean] - if the commit is a remote git on the vcs server
+  # @return [String] - sha of the commit
+  def run(remote = false, branch = 'master')
     if already_released?
       logger.fatal "Version #{version} had already been released, did you bump the version manually?"
       exit 1
     end
     File.write(changelog_file, new_content) unless remote
-    commit_changelog(nil, remote) if options[:commit]
+    id = commit_changelog(nil, remote, branch) if options[:commit]
     logger.info "The changelog has been updated to version #{version}"
+    id
   end
 
   # @returns [String] the full path to the change log file
@@ -88,7 +91,7 @@ class Changelog < WorkflowAction
   end
 
   # @return [String] the oid of the commit that was created
-  def commit_changelog(msg = nil, remote = false)
+  def commit_changelog(msg = nil, remote = false, branch = 'master')
     message = msg || "[ReleaseManager] - bump changelog to version #{version}"
     if remote
       actions = [{
@@ -96,7 +99,7 @@ class Changelog < WorkflowAction
          file_path: changelog_file.split(repo.workdir).last,
          content: new_content
       }]
-      obj = vcs_create_commit(source, 'master', message, actions)
+      obj = vcs_create_commit(source, branch, message, actions)
       obj.id if obj
     else
       add_file(changelog_file)

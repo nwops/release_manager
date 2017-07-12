@@ -108,6 +108,18 @@ module ReleaseManager
         raise NotImplementedError
       end
 
+      def remote_tags(url)
+        raise NotImplementedError
+      end
+
+      def remote_tag_names(url)
+        raise NotImplementedError
+      end
+
+      def remote_tag_exists?(url, tag)
+        raise NotImplementedError
+      end
+
     end
   end
 end

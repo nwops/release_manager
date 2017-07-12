@@ -12,3 +12,6 @@ class InvalidModule < Exception; end
 class InvalidToken < Exception; end
 class InvalidSshkey < Exception; end
 class InvalidBranchName < Exception; end
+class PatchError < Exception; end
+class AlreadyReleased < Exception; end
+class TagExists < Exception; end

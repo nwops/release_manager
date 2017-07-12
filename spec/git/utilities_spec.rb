@@ -5,7 +5,6 @@ describe ReleaseManager::Git::Utilities do
   include ReleaseManager::Git::Utilities
   include ReleaseManager::Logger
 
-
   let(:path) do
     File.join(fixtures_dir, 'r10k-control')
   end
@@ -49,7 +48,7 @@ describe ReleaseManager::Git::Utilities do
   it 'changed files shows files and file method' do
     src = '0ed81d64c4657303a6a25ec4f5389b7d1572bf03'
     dest = 'f44882011791a4499a9818c1842ff00064e6034f'
-    files = create_diff_obj(repo.lookup(src), repo.lookup(dest))
+    files = create_diff_obj(dest, src)
     result = [{:old_path=>"changed_file2.rb",
                :status=>:added,
                :new_path=>"changed_file2.rb",
@@ -64,7 +63,7 @@ describe ReleaseManager::Git::Utilities do
   it 'changed files shows files and file method' do
     src = '0ed81d64c4657303a6a25ec4f5389b7d1572bf03'
     dest = '9bfc0adb6200d1da7c7161091820da6d32844cc4'
-    files = create_diff_obj(repo.lookup(src), repo.lookup(dest))
+    files = create_diff_obj(dest, src)
     result = [{:old_path=>"changed_file.rb",
                :status=>:added,
                :new_path=>"changed_file.rb",
@@ -79,12 +78,64 @@ describe ReleaseManager::Git::Utilities do
   it 'changed files shows files and file method' do
     src = '9bfc0adb6200d1da7c7161091820da6d32844cc4'
     dest = 'f44882011791a4499a9818c1842ff00064e6034f'
-    files = create_diff_obj(repo.lookup(src), repo.lookup(dest))
+    files = create_diff_obj(dest, src)
     result = [{:old_path=>"changed_file.rb", :status=>:deleted,
                :new_path=>"changed_file.rb", :content=>nil},
               {:old_path=>"changed_file2.rb", :status=>:added,
                :new_path=>"changed_file2.rb", :content=>"dsfasd\n"}]
     expect(files).to eq(result)
+  end
+
+  describe '#create_diff' do
+    it 'with tag' do
+      src = 'v0.0.1'
+      dest = 'master'
+      diff = create_diff(src, dest)
+      expect(diff).to be_a Rugged::Diff
+    end
+
+    it 'with branch' do
+      src = 'dev'
+      dest = 'master'
+      diff = create_diff(src, dest)
+      expect(diff).to be_a Rugged::Diff
+    end
+
+    it 'with ref' do
+      src = '9bfc0adb6200d1da7c7161091820da6d32844cc4'
+      dest = 'master'
+      diff = create_diff(src, dest)
+      expect(diff).to be_a Rugged::Diff
+    end
+
+    it 'up2date? is true' do
+      src = 'dev'
+      expect(up2date?(src,src)).to be true
+    end
+
+    xit 'up2date? is false' do
+      src = 'dev2'
+      dest = 'dev'
+      expect(up2date?(src,dest)).to be false
+    end
+  end
+
+  it 'changed files shows files and file method' do
+    src = '9bfc0adb6200d1da7c7161091820da6d32844cc4'
+    dest = 'f44882011791a4499a9818c1842ff00064e6034f'
+    files = create_diff_obj(dest, src)
+    result = [{:old_path=>"changed_file.rb", :status=>:deleted,
+               :new_path=>"changed_file.rb", :content=>nil},
+              {:old_path=>"changed_file2.rb", :status=>:added,
+               :new_path=>"changed_file2.rb", :content=>"dsfasd\n"}]
+    expect(files).to eq(result)
+  end
+
+  it 'can delete branch' do
+    create_branch('old_dev', 'dev')
+    checkout_branch('old_dev')
+    checkout_branch('dev')
+    expect(delete_branch('old_dev')).to be true
   end
 
 

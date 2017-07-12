@@ -124,6 +124,7 @@ module ReleaseManager
           return false
         end
         project = name_to_id(repo_id(url))
+        logger.debug("Creating commit for #{url} on branch #{branch} with project id: #{project}")
         logger.info("Creating commit #{message}")
         client.create_commit(project, branch, message, actions, options)
       end
@@ -145,6 +146,7 @@ module ReleaseManager
       # @option options [Integer] :target_project_url (optional) The target project url.
       # @return [Gitlab::ObjectifiedHash] Information about created merge request.
       def create_merge_request(url, title, options={})
+        logger.debug("Creating merge request at #{url}")
         project = name_to_id(repo_id(url))
         options[:target_project_id] = name_to_id(repo_id(options.delete(:target_project_url))) if options[:target_project_url]
         raise ArgumentError unless options[:source_branch] and options[:target_branch]
@@ -172,6 +174,24 @@ module ReleaseManager
         project = name_to_id(repo_id(url))
         logger.info("Creating remote branch #{name} from #{ref}")
         client.create_branch(project, name, ref)
+      end
+
+      def remote_tags(url)
+        project = name_to_id(repo_id(url))
+        client.tags(project).map(&:name)
+      end
+
+      def remote_tag_names(url)
+        remote_tags(url)
+      end
+
+      def remote_tag_exists?(url, tag)
+        begin
+          project = name_to_id(repo_id(url))
+          client.tag(project, tag)
+        rescue Gitlab::Error::NotFound
+          false
+        end
       end
 
       private
@@ -231,16 +251,16 @@ module ReleaseManager
   end
 end
 
-class Gitlab::Client
+#class Gitlab::Client
   # monkey patch correct api method until next version is released
-  module Commits
-    def create_commit(project, branch, message, actions, options={})
-      payload = {
-          branch: branch,
-          commit_message: message,
-          actions: actions,
-      }.merge(options)
-      post("/projects/#{url_encode project}/repository/commits", body: payload)
-    end
-  end
-end
+#  module Commits
+#    def create_commit(project, branch, message, actions, options={})
+#      payload = {
+#          branch: branch,
+#          commit_message: message,
+#          actions: actions,
+#      }.merge(options)
+#      post("/projects/#{url_encode project}/repository/commits", body: payload)
+#    end
+#  end
+#end
