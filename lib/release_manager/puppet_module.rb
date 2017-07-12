@@ -15,7 +15,7 @@ class PuppetModule < WorkflowAction
 
 
  def initialize(mod_path, upstream = nil)
-   raise ModNotFoundException if mod_path.nil?
+   raise ModNotFoundException.new("#{mod_path} is not a valid puppet module path") if mod_path.nil?
    @path = mod_path
    @upstream = upstream 
    @metadata_file = File.join(mod_path, 'metadata.json')
@@ -42,7 +42,7 @@ class PuppetModule < WorkflowAction
  # @returns [Hash] the metadata object as a ruby hash
  def metadata
    unless @metadata
-     raise ModNotFoundException unless File.exists?(metadata_file) 
+     raise ModNotFoundException.new("#{path} does not contain a metadata file") unless File.exists?(metadata_file)
      @metadata ||= JSON.parse(File.read(metadata_file))
    end
    @metadata
