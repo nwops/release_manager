@@ -67,6 +67,8 @@ describe Sandbox do
     expect_any_instance_of(Puppetfile).to receive(:push).with('upstream', 'my_sandbox', true)
     allow_any_instance_of(Sandbox).to receive(:repo_id).and_return('123455')
     allow_any_instance_of(Puppetfile).to receive(:find_mod).and_return(mod)
+    allow_any_instance_of(Puppetfile).to receive(:write_to_file).and_return(true)
+    allow_any_instance_of(Puppetfile).to receive(:commit).and_return(true)
     allow(Gitlab).to receive(:create_fork).and_return(gitlab_repo)
     allow(Gitlab).to receive(:repo_create_branch).and_return(gitlab_repo)
     allow_any_instance_of(ControlRepo).to receive(:clone).and_return(repository)

@@ -159,9 +159,12 @@ class Sandbox
     @control_repo.checkout_branch(name)
     puppetfile.write_to_file
     logger.info("Committing Puppetfile changes to r10k-control branch: #{name}")
-    puppetfile.commit("Sandbox Creation for #{name} environment")
-    logger.info("Pushing new environment branch: #{name} to upstream")
-    puppetfile.push('upstream', name, true)
+    committed = puppetfile.commit("Sandbox Creation for #{name} environment")
+    # no need to push if we didn't commit anything
+    if committed
+      logger.info("Pushing new environment branch: #{name} to upstream")
+      puppetfile.push('upstream', name, true)
+    end
     return self
   end
 
