@@ -43,7 +43,7 @@ class Release
     raise TagExists.new("Tag v#{version} already exists") if puppet_module.tag_exists?("v#{next_version}", options[:remote])
     version = puppet_module.bump_patch_version unless options[:bump]
     # save the update version to the metadata file, then commit
-    puppet_module.commit_metadata
+    puppet_module.commit_metadata(options[:remote])
   end
 
   # @return [String] - sha of the commit
@@ -107,7 +107,7 @@ class Release
       end
     end
 
-    # updates the metadata.js file to the next version
+    # updates the metadata.json file to the next version
     bump
     # updates the changelog to the next version based on the metadata file
     id = bump_log

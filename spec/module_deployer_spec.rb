@@ -99,7 +99,7 @@ describe ModuleDeployer do
   describe 'real run without push and commit' do
     let(:options) do
       {
-          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          puppetfile: File.join(fixtures_dir, 'r10k-control', 'Puppetfile'),
           modulepath: File.join(fixtures_dir, 'puppet-debug'),
           commit: false,
           push: false,
@@ -115,6 +115,7 @@ describe ModuleDeployer do
       allow_any_instance_of(Puppetfile).to receive(:write_to_file).and_return(true)
       allow(puppetmodule).to receive(:latest_tag).and_return('v0.1.3')
       allow(deployer).to receive(:puppet_module).and_return(puppetmodule)
+      allow_any_instance_of(Rugged::Remote).to receive(:push)
       deployer.run
     end
 
@@ -123,7 +124,7 @@ describe ModuleDeployer do
   describe 'dry run' do
     let(:options) do
       {
-          puppetfile: File.join(fixtures_dir, 'puppetfile.txt'),
+          puppetfile: File.join(fixtures_dir, 'r10k-control', 'Puppetfile'),
           modulepath: File.join(fixtures_dir, 'puppet-debug'),
           commit: true,
           push: true,

@@ -41,6 +41,10 @@ class ModuleDeployer
     @puppetfile ||= Puppetfile.new(puppetfile_path)
   end
 
+  def remote_deploy?
+    options[:remote]
+  end
+
   # @param [PuppetModule] puppet_module - the puppet module to check for existance
   # raises
   def add_module(puppet_module)
@@ -56,13 +60,12 @@ class ModuleDeployer
     begin
       check_requirements
       logger.info "Deploying module #{puppet_module.name} with version: #{latest_version}"
+      add_module(puppet_module)
       if options[:dry_run]
-        add_module(puppet_module)
         puts "Would have updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}".green
         puts "Would have committed with message: bump #{puppet_module.name} to version: #{latest_version}".green if options[:commit]
         puts "Would have just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}".green if options[:push]
       else
-        add_module(puppet_module)
         puppetfile.write_version(puppet_module.name, latest_version)
         puppetfile.write_source(puppet_module.name, puppet_module.source)
         puppetfile.write_to_file
@@ -70,7 +73,7 @@ class ModuleDeployer
         if options[:commit]
           puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")
         end
-        if options[:push]
+        if remote_deploy?
           puppetfile.push(control_repo_remote, puppetfile.current_branch)
           logger.info "Just pushed branch: #{puppetfile.current_branch} to remote: #{control_repo_remote}"
         end
