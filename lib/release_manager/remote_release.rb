@@ -38,6 +38,10 @@ class RemoteRelease < Release
       logger.info "Version #{version} has been released successfully"
       puts "This was a dry run so nothing actually happen".green if dry_run?
       exit 0
+    rescue Gitlab::Error::NotFound => e
+      logger.fatal(e.message)
+      logger.fatal("This probably means the user attached to the token does not have access")
+      exit -1
     rescue Gitlab::Error::MissingCredentials
       logger.fatal(e.message)
       exit -1

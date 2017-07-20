@@ -32,6 +32,10 @@ module ReleaseManager
         opts.on('-a', '--auto', 'Run this script without interaction') do |c|
           options[:auto] = c
         end
+        opts.on('-r', '--remote-deploy', "Perform a remote deploy (For CI systems)") do |c|
+          options[:remote] = c
+          options[:auto] = true
+        end
       end.parse!
       m = ModuleDeployer.new(options)
       m.run
