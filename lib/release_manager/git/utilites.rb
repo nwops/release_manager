@@ -221,11 +221,11 @@ module ReleaseManager
 
       # @param [String] file - the path to the file you want to add
       def add_file(file)
+        logger.debug("Adding file #{file}")
         return add_all if file == '.'
         index = repo.index
         file.slice!(repo.workdir)
         index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
-        index.write
       end
 
       # @param [String] file - the path to the patch file you want to apply
@@ -269,42 +269,43 @@ module ReleaseManager
 
       # @param [String] file - the path to the file you want to remove
       def remove_file(file)
+        logger.debug("Removing file #{file}")
         index = repo.index
         File.unlink(file)
         index.remove(file)
-        index.write
       end
 
-      # # @param [String] message - the message you want in the commit
-      # def create_commit(message)
-      #   # get the index for this repository
-      #   logger.info repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
-      #
-      #   index = repo.index
-      # if index.diff.deltas.count < 1
-      #   logger.info("Nothing to commit")
-      #   return false
-      # end
-      #   index.read_tree repo.head.target.tree unless repo.empty?
-      #   #repo.lookup
-      #   tree_new = index.write_tree repo
-      #   oid = Rugged::Commit.create(repo,
-      #                         author: author,
-      #                         message: message,
-      #                         committer: author,
-      #                         parents: repo.empty? ? [] : [repo.head.target].compact,
-      #                         tree: tree_new,
-      #                         update_ref: 'HEAD')
-      #   logger.info("Created commit #{oid} with #{message}")
-      #   index.write
-      #   #repo.status { |file, status_data| puts "#{file} has status: #{status_data.inspect}" }
-      #   repo.save
-      #   oid
-      # end
+      def update_cli_index
+        `#{git_command} update-index --really-refresh`
+      end
+
+      # @param [String] message - the message you want in the commit
+      def create_commit(message)
+        # get the index for this repository
+        repo.status { |file, status_data| logger.debug "#{file} has status: #{status_data.inspect}" }
+        index = repo.index
+        index.write
+        options = {}
+        options[:author] = author
+        options[:message] = message
+        options[:committer] = author
+        options[:parents] = repo.empty? ? [] : [repo.head.target_id].compact
+        options[:update_ref] = 'HEAD'
+        options[:tree] = index.write_tree
+        oid = Rugged::Commit.create(repo, options)
+        if oid
+          logger.info("Created commit #{message}")
+          repo.status { |file, status_data| logger.debug "#{file} has status: #{status_data.inspect}" }
+        else
+          logger.warn("Something went wrong with the commit")
+        end
+        update_cli_index # for some reason the command line doesn't refresh the index after committing.
+        oid
+      end
 
       # @param [String] message - the message you want in the commit
       # TODO: change this to rugged implementation
-      def create_commit(message)
+      def cli_create_commit(message)
         output = nil
         Dir.chdir(path) do
           output = `#{git_command} commit --message '#{message}' 2>&1`
