@@ -1,6 +1,9 @@
 # Release Manager
 ## Unreleased
- * Updates gitlab gem to 4.1
+
+## 0.5.0
+ * Adds more error handling instead of stack dumps
+ * Updates gitlab gem to 4.2
  * Updates rugged gem to 0.26
  * Adds deploy-r10k cli command
  * Refactors more git commands to use rugged
