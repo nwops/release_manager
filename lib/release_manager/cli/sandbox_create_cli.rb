@@ -1,4 +1,5 @@
 require 'release_manager/sandbox'
+require 'release_manager'
 module ReleaseManager
   class SandboxCreateCli
 

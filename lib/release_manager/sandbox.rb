@@ -143,6 +143,9 @@ class Sandbox
       begin
         mod = puppetfile.find_mod(mod_name)
         setup_module_repo(mod)
+      rescue Rugged::CheckoutError => e
+        logger.fatal(e.message)
+        exit 1
       rescue InvalidModuleNameException => e
         logger.error(e.message)
         value = nil
@@ -165,6 +168,7 @@ class Sandbox
       logger.info("Pushing new environment branch: #{name} to upstream")
       puppetfile.push('upstream', name, true)
     end
+    logger.info("Sandbox created successfully")
     return self
   end
 
@@ -212,5 +216,4 @@ class Sandbox
     box.verify_api_token
     box.create(options[:r10k_repo_url])
   end
-
 end
