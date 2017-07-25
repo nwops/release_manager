@@ -1,6 +1,6 @@
 # Release Manager
 ## Unreleased
-
+ * Fixes missing error object when credentials are not present
 ## 0.5.0
  * Adds more error handling instead of stack dumps
  * Updates gitlab gem to 4.2

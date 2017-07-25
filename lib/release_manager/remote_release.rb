@@ -42,7 +42,7 @@ class RemoteRelease < Release
       logger.fatal(e.message)
       logger.fatal("This probably means the user attached to the token does not have access")
       exit -1
-    rescue Gitlab::Error::MissingCredentials
+    rescue Gitlab::Error::MissingCredentials => e
       logger.fatal(e.message)
       exit -1
     rescue Gitlab::Error::Forbidden => e
