@@ -56,6 +56,7 @@ Summary: Deploys the source ref into the dest branch by diffing the two and appl
       options[:puppetfile] = options[:puppetfile] || puppetfile_path
       options[:src_ref] ||= ARGV[0]
       options[:dest_ref] ||= ARGV[1]
+      options[:remote] = true
       validate(options)
       path = File.dirname(options[:puppetfile])
       R10kDeployer.run(path, options)

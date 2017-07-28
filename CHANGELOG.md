@@ -1,6 +1,7 @@
 # Release Manager
 ## Unreleased
  * Fixes missing error object when credentials are not present
+ * Fixes error when deploy-r10k is used and remote setting was not set
 ## 0.5.0
  * Adds more error handling instead of stack dumps
  * Updates gitlab gem to 4.2
