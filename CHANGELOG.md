@@ -1,5 +1,6 @@
 # Release Manager
 ## Unreleased
+## 0.5.1
  * Fixes missing error object when credentials are not present
  * Fixes error when deploy-r10k is used and remote setting was not set
 ## 0.5.0
