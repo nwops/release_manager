@@ -1,5 +1,7 @@
 # Release Manager
 ## Unreleased
+## 0.5.2
+ * Adds proper error handling when missing git author name and email with r10k-deploy
 ## 0.5.1
  * Fixes missing error object when credentials are not present
  * Fixes error when deploy-r10k is used and remote setting was not set

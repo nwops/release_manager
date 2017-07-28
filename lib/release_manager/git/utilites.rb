@@ -199,12 +199,12 @@ module ReleaseManager
 
       # @return [String] - the author name found in the config
       def author_name
-        repo.config.get('user.name') || Rugged::Config.global.get('user.name')
+        repo.config.get('user.name') || Rugged::Config.global.get('user.name') || ENV['GIT_USER_NAME']
       end
 
       # @return [String] - the author email found in the config
       def author_email
-        repo.config.get('user.email') || Rugged::Config.global.get('user.email')
+        repo.config.get('user.email') || Rugged::Config.global.get('user.email') || ENV['GIT_USER_EMAIL']
       end
 
       # @return [Hash] the author information used in a commit message
@@ -281,6 +281,9 @@ module ReleaseManager
 
       # @param [String] message - the message you want in the commit
       def create_commit(message)
+        unless author_name and author_email
+          raise GitError.new("Git username and email must be set, current: #{author.inspect}")
+        end
         # get the index for this repository
         repo.status { |file, status_data| logger.debug "#{file} has status: #{status_data.inspect}" }
         index = repo.index

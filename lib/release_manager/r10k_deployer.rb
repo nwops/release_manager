@@ -39,6 +39,9 @@ class R10kDeployer
       deploy.check_requirements
       deploy.logger.info "Deploying R10k-Control #{options[:dest_ref]} with version: #{options[:src_ref]}"
       deploy.run
+    rescue GitError => e
+      deploy.logger.fatal(e.message)
+      code = 1
     rescue Gitlab::Error::Forbidden => e
       logger.fatal(e.message)
       logger.fatal("You don't have access to modify the repository")
@@ -99,6 +102,7 @@ class R10kDeployer
       control_repo.apply_patch(patchfile.path)
       control_repo.add_all
     end
+    # since we added everything locally we don't create a remote commit
     successful_commit = control_repo.commit(message, nil, nil, false)
     control_repo.push_branch('myfork', branch_name, true) if successful_commit
     mr = control_repo.create_merge_request(control_repo.url, message, {
