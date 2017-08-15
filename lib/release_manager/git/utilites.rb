@@ -232,6 +232,7 @@ module ReleaseManager
       def apply_patch(file)
         # TODO: change this to rugged implementation
         logger.info("Applying patch #{file}")
+        output = ''
         Dir.chdir(path) do
           output = `#{git_command} apply #{file} 2>&1`
         end
