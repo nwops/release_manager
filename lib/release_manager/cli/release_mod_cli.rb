@@ -25,10 +25,10 @@ module ReleaseManager
         opts.version = ReleaseManager::VERSION
         opts.on_head(<<-EOF
 
-Summary: Bumps the module version to the next revision and 
+Summary: Bumps the module version to the next revision and
          updates the changelog.md file with the new
          version by reading the metadata.json file. This should
-         be run inside a module directory. 
+         be run inside a module directory.
 
         EOF
         )
@@ -36,7 +36,10 @@ Summary: Bumps the module version to the next revision and
           options[:dry_run] = c
         end
         opts.on('-a', '--auto', 'Run this script without interaction') do |c|
-          options[:auto] = c
+          options[:auto] = c 
+        end
+        opts.on('-l', '--level [LEVEL]', 'Semantic versioning level to bump (major,minor,patch), defaults to patch') do |c|
+          options[:level] = c 
         end
         opts.on('-m', '--module-path [MODULEPATH]', "The path to the module, defaults to #{Dir.getwd}") do |c|
           options[:path] = c
@@ -54,6 +57,13 @@ Summary: Bumps the module version to the next revision and
           options[:remote] = true
         end
       end.parse!
+     
+      # validate -l, --level input
+      unless %w(major minor patch).include?(options[:level])
+        puts "expected major minor or patch for parameter -l,  --level. You supplied #{options[:level]}.".fatal
+        exit 1
+      end
+
       r = options[:remote] ?
           RemoteRelease.new(options[:path], options) : Release.new(options[:path], options)
       r.run

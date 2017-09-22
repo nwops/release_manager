@@ -202,6 +202,7 @@ Summary: Bumps the module version to the next revision and
 
     -d, --dry-run                    Do a dry run, without making changes
     -a, --auto                       Run this script without interaction
+    -l, --level			     Semantic versioning level to bump (major.minor.patch), defaults to patch
     -m, --module-path                The path to the module, defaults to current working directory
     -b, --no-bump                    Do not bump the version in metadata.json
     -r, --repo [REPO]                The repo to use, defaults to repo found in the metadata source
