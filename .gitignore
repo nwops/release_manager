@@ -8,7 +8,10 @@
 /pkg/
 /spec/reports/
 /tmp/
-srv/
+srv/gitlab/data
+srv/gitlab/logs
+.env
+srv2
 bundl
 # rspec failure tracking
 .rspec_status

@@ -28,19 +28,39 @@ def create_puppet_file(proj)
   end
 end
 
+def create_branch(proj_id, branch, ref)
+  begin
+    client.create_branch(proj_id, branch, ref)
+  rescue Gitlab::Error::BadRequest => e
+    if e.response_status == 400
+      puts "Branch already created"
+    else
+      raise e
+    end
+  end
+end
+
 def create_control_repo
   begin
     proj = client.create_project('control-repo', namespace_id: devops_group.id)
-    client.create_branch(proj.id, 'dev')
-    client.create_branch(proj.id, 'qa')
-    client.create_branch(proj.id, 'integration')
-    client.create_branch(proj.id, 'acceptance')
-    client.create_branch(proj.id, 'production')
     create_puppet_file(proj)
+    create_branch(proj.id, 'dev', 'master')
+    create_branch(proj.id, 'qa', 'master')
+    create_branch(proj.id, 'integration', 'master')
+    create_branch(proj.id, 'acceptance', 'master')
+    create_branch(proj.id, 'production', 'master')
+    client.unprotect_branch(proj.id, 'master')
   rescue Gitlab::Error::BadRequest => e
     if e.response_status == 400
       # already created
-      proj = client.project("devops%2Fcontrol-repo")
+      proj = client.project("devops/control-repo")
+      create_branch(proj.id, 'dev', 'master')
+      create_branch(proj.id, 'qa', 'master')
+      create_branch(proj.id, 'integration', 'master')
+      create_branch(proj.id, 'acceptance', 'master')
+      create_branch(proj.id, 'production', 'master')
+      client.unprotect_branch(proj.id, 'master')
+     # client.delete_branch(proj.id, 'master')
       create_puppet_file(proj)
     end
   end
@@ -81,7 +101,7 @@ def mod(name, *args)
     proj = client.create_project(name, import_url: url, namespace_id: devops_group.id)
   rescue Gitlab::Error::BadRequest => e
     if e.response_status == 400
-      proj = client.project("devops%2F#{name}")
+      proj = client.project("devops/#{name}")
     end
   end
   args.first[:git] = proj.ssh_url_to_repo
@@ -89,8 +109,8 @@ def mod(name, *args)
   puppetfile_content << "mod '#{name}',\n  #{data}\n\n"
 end
 
-# eval(modules)
-# create_control_repo
+create_control_repo
+eval(modules)
 #
 # client.create_user('joe@foo.org', 'password', 'joe', { name: 'Joe Smith' })
 

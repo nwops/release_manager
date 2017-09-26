@@ -311,6 +311,42 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+
+## Develpment Environment Setup
+### Setting up your Gitlab Instance
+1. Ensure you have docker installed
+2. `docker-compose up`
+3. Visit http://localhost:8000/
+4. Create a password  (password123)
+5. Login (root/password123)
+6. Create a user account for yourself (add Admin role)
+7. Logout as Admin and login as the new user account
+8. Add a group named devops and add yourself to this group
+9. Add another group called mirrors and add yourself to this group
+10. Create a `.env` file in the repo directory and paste these contents in it
+  ```ruby
+GITLAB_API_ENDPOINT='http://web/api/v4'
+GITLAB_API_PRIVATE_TOKEN='your token goes here'
+R10K_REPO_URL="git@web:devops/control-repo.git"
+
+  ```
+10. Create an Personal Access Token (API) token for your user account
+11. Replace the token in your .env file
+
+### Configure your release manager client
+12. run `docker-compose run client`
+13. From the container run source .env
+16. From client container `source .bash_profile`
+17. Add the ~/.ssh/id_rsa.pub key to your gitlab account
+13. From the new client container session, run `bash app_startup_script.sh`
+14. From the client container, run `ruby setup_codes.rb`
+15. From the client container attempt to connect to the git server and accept the key `ssh git@web`
+16. Test to ensure you can clone a repository inside the container `git clone git@web:devops/docker.git /tmp/docker`
+
+### Testing the cli commands
+16. `bundle exec exe/sandbox-create -n my_sandbox -m docker`  # example
+17. `bundle exec exe/release-mod --level minor -m ~/repos/docker`
+
 ## Contributing
 
 Bug reports and pull requests are welcome on release_manager.

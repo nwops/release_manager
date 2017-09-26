@@ -1,48 +1,49 @@
-version: '2'
+version: '3'
 services:
-  app:
-    image: nwops/release_manager
+  client:
+    image: nwops/release_manager:latest
     build: .
     entrypoint:
       - ssh-agent
       - /bin/bash
     environment:
-      GEM_HOME: '/home/appuser/.gems'
-      BUNDLE_PATH: '/home/appuser/.bundle'
-      GITLAB_API_ENDPOINT: 'http://web/api/v4'
-      # the token may change so this really needs to be more dynamic
-      GITLAB_API_PRIVATE_TOKEN: 'A_zJJfgE8P-8mFGK2_r9'
-      R10K_REPO_URL: "git@web:devops/control-repo.git"
+      - GEM_HOME=/home/appuser/.gems
+      - BUNDLE_PATH=/home/appuser/.bundle
+      - GITLAB_API_ENDPOINT=http://web/api/v4
+      - GITLAB_API_PRIVATE_TOKEN
+      - R10K_REPO_URL="git@web:devops/control-repo.git"
     working_dir: /app
 #    command:
 #      - app_startup_script.sh
     volumes:
       - .:/app
   runner:
-    image: 'registry.gitlab.com/gitlab-org/gitlab-ci-multi-runner:ubuntu-v9.3.0'
+    depends_on:
+      - web
+    image: 'gitlab/gitlab-runner:ubuntu-v9.5.0'
     volumes:
       - './srv/gitlab-runner/config:/etc/gitlab-runner'
       - '/var/run/docker.sock:/var/run/docker.sock'
     environment:
-      DOCKER_NETWORK_MODE: 'releasemanager_default'
-      RUNNER_TAG_LIST: 'ruby'
-      REGISTRATION_TOKEN: 'W_nSSWTvuYmGUmUbh65y'
-      RUNNER_NAME: 'test-runner'
-      CI_SERVER_URL: 'http://web/ci'
-      RUNNER_EXECUTOR: 'docker'
-      GITLAB_API_ENDPOINT: 'http://web/api/v4'
-      REGISTER_RUN_UNTAGGED: 'true'
-      DOCKER_IMAGE: 'ruby:2.1'
-      REGISTER_LOCKED: 'false'
+      - DOCKER_NETWORK_MODE=releasemanager_default
+      - RUNNER_TAG_LIST=ruby
+      - REGISTRATION_TOKEN=W_nSSWTvuYmGUmUbh65y
+      - RUNNER_NAME=test-runner
+      - CI_SERVER_URL=http://web/ci
+      - RUNNER_EXECUTOR=docker
+      - GITLAB_API_ENDPOINT=http://web/api/v4
+      - REGISTER_RUN_UNTAGGED=true
+      - DOCKER_IMAGE=ruby:2.1
+      - REGISTER_LOCKED=false
       # the token may change so this really needs to be more dynamic
-      GITLAB_API_PRIVATE_TOKEN: 'A_zJJfgE8P-8mFGK2_r9'
+      - GITLAB_API_PRIVATE_TOKEN
       #entrypoint:
   web:
-    image: 'gitlab/gitlab-ce:latest'
+    image: 'gitlab/gitlab-ce:9.5.5-ce.0'
     restart: always
-    environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://web'
+#    environment:
+#      GITLAB_OMNIBUS_CONFIG: |
+#        external_url http://web
     ports:
       - '8000:80'
       - '4433:443'

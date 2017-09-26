@@ -1,0 +1,17 @@
+concurrent = 1
+check_interval = 0
+
+[[runners]]
+  name = "test-runner"
+  url = "http://web/ci"
+  token = "defcd0d23f3fbfa2069a895cc4ff50"
+  executor = "docker"
+  [runners.docker]
+    tls_verify = false
+    image = "ruby:2.1"
+    privileged = false
+    disable_cache = false
+    volumes = ["/cache"]
+    shm_size = 0
+    network_mode = "releasemanager_default"
+  [runners.cache]
