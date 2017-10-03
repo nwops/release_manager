@@ -110,7 +110,7 @@ class Changelog < WorkflowAction
   # checks to make sure the unreleased line is valid, and the file exists
   def self.check_requirements(path)
     log = new(path, nil)
-    log.unreleased_index if File.exists?(log.changelog_file)
+    log.unreleased_index
   end
 
   private
