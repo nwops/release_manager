@@ -57,13 +57,15 @@ Summary: Bumps the module version to the next revision and
           options[:remote] = true
         end
       end.parse!
-     
+
+      # default to patch
+      options[:level] ||= 'patch'
+
       # validate -l, --level input
       unless %w(major minor patch).include?(options[:level])
         puts "expected major minor or patch for parameter -l,  --level. You supplied #{options[:level]}.".fatal
         exit 1
       end
-
       r = options[:remote] ?
           RemoteRelease.new(options[:path], options) : Release.new(options[:path], options)
       r.run

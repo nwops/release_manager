@@ -331,23 +331,31 @@ GITLAB_API_PRIVATE_TOKEN='your token goes here'
 R10K_REPO_URL="git@web:devops/control-repo.git"
 
   ```
-10. Create an Personal Access Token (API) token for your user account
-11. Replace the token in your .env file
+11. Create an Personal Access Token (API) token for your user account
+12. Replace the token in your .env file
 
 ### Configure your release manager client
-12. run `docker-compose run client`
-13. From the container run source .env
-16. From client container `source .bash_profile`
-17. Add the ~/.ssh/id_rsa.pub key to your gitlab account
-13. From the new client container session, run `bash app_startup_script.sh`
-14. From the client container, run `ruby setup_codes.rb`
-15. From the client container attempt to connect to the git server and accept the key `ssh git@web`
-16. Test to ensure you can clone a repository inside the container `git clone git@web:devops/docker.git /tmp/docker`
+1. run `docker-compose run client`
+2. From the container run source .env
+3. From client container `source .bash_profile`
+4. Add the ~/.ssh/id_rsa.pub key to your gitlab account
+5. From the new client container session, run `bundle exec bash app_startup_script.sh`
+6. From the client container, run `bundle exec ruby setup_repos.rb`
+7. From the client container attempt to connect to the git server and accept the key `ssh git@web`
+8. Test to ensure you can clone a repository inside the container `git clone git@web:devops/docker.git /tmp/docker`
 
 ### Testing the cli commands
-16. `bundle exec exe/sandbox-create -n my_sandbox -m docker`  # example
-17. `bundle exec exe/release-mod --level minor -m ~/repos/docker`
+1. `bundle exec exe/sandbox-create -n my_sandbox -m docker`  # example
+2. `bundle exec exe/release-mod --level minor -m ~/repos/docker`
 
+### Debugging
+if you cannot connect to the gitlab server via ssh you see errros about private key 
+has wrong permission you will need to do the following:
+
+`chmod 600 srv/gitlab/config/ssh_host_ecdsa_key srv/gitlab/config/ssh_host_ed25519_key srv/gitlab/config/ssh_host_rsa_key`
+
+If the sandbox create command freezes after the first output make sure you can connect
+to the git server using git clone or running `ssh-add` to add your ssh key to the ssh agent.
 ## Contributing
 
 Bug reports and pull requests are welcome on release_manager.

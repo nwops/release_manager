@@ -25,7 +25,7 @@ class Release
 
   # @returns [String] the release level
   def level
-     options[:level] || 'patch' 
+     options[:level] || 'patch'
   end
 
   def next_version
