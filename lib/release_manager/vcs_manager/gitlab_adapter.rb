@@ -250,17 +250,3 @@ module ReleaseManager
     end
   end
 end
-
-#class Gitlab::Client
-  # monkey patch correct api method until next version is released
-#  module Commits
-#    def create_commit(project, branch, message, actions, options={})
-#      payload = {
-#          branch: branch,
-#          commit_message: message,
-#          actions: actions,
-#      }.merge(options)
-#      post("/projects/#{url_encode project}/repository/commits", body: payload)
-#    end
-#  end
-#end
