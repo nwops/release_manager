@@ -16,7 +16,7 @@ class PuppetModule < WorkflowAction
  def initialize(mod_path, upstream = nil)
    raise ModNotFoundException.new("#{mod_path} is not a valid puppet module path") if mod_path.nil?
    @path = mod_path
-   @upstream = upstream 
+   @upstream = upstream
    @metadata_file = File.join(mod_path, 'metadata.json')
  end
 
@@ -33,8 +33,8 @@ class PuppetModule < WorkflowAction
  def name
    namespaced_name.split(/\/|\-/).last
  end
- 
- def namespaced_name 
+
+ def namespaced_name
    metadata['name']
  end
 
@@ -105,6 +105,28 @@ class PuppetModule < WorkflowAction
    metadata['version']
  end
 
+ # @returns [String] the next version based on the release level
+ def next_version(level = 'patch')
+   return unless version
+   pieces = version.split('.')
+   raise "invalid semver structure #{version}" if pieces.count != 3
+
+   case level
+     when 'major'
+       pieces[2] = '0'
+       pieces[1] = '0'
+       pieces[0] = pieces[0].next
+     when 'minor'
+       pieces[2] = '0'
+       pieces[1] = pieces[1].next
+     when 'patch'
+       pieces[2] = pieces[2].next
+     else
+       raise "expected semver release level major, minor or patch"
+   end
+   pieces.join('.')
+ end
+
  # @param remote [Boolean] - create the tag remotely using the remote VCS
  # @param id [String] - the commit id to tag to
  def tag_module(remote = false, id = nil)
@@ -120,32 +142,17 @@ class PuppetModule < WorkflowAction
 
  # Updates the version in memory
  def bump_patch_version
-    return unless version
-    pieces = version.split('.')
-    raise "invalid semver structure #{version}" if pieces.count != 3
-    pieces[2] = pieces[2].next
-    metadata['version'] = pieces.join('.')
+    metadata['version'] = next_version('patch')
  end
 
  # Updates the version in memory
  def bump_minor_version
-    return unless version
-    pieces = version.split('.')
-    raise "invalid semver structure #{version}" if pieces.count != 3
-    pieces[2] = '0'
-    pieces[1] = pieces[1].next
-    metadata['version'] = pieces.join('.')
+    metadata['version'] = next_version('minor')
  end
 
  # Updates the version in memory
  def bump_major_version
-    return unless version
-    pieces = version.split('.')
-    raise "invalid semver structure #{version}" if pieces.count != 3
-    pieces[2] = '0'
-    pieces[1] = '0'
-    pieces[0] = pieces[0].next
-    metadata['version'] = pieces.join('.')
+    metadata['version'] = next_version('major')
  end
 
  def to_s

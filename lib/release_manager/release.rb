@@ -6,16 +6,16 @@ class Release
   include ReleaseManager::Logger
 
   def initialize(path = Dir.getwd, options = {})
-    @path = path || Dir.getwd    
+    @path = path || Dir.getwd
     @options = options
   end
-  
+
   def puppet_module
     @puppet_module ||= PuppetModule.new(path, upstream_repo)
   end
 
-  def upstream_repo 
-    options[:repo] || ENV['UPSTREAM_REPO']  
+  def upstream_repo
+    options[:repo] || ENV['UPSTREAM_REPO']
   end
 
   # @returns [String] the version found in the metadata file
@@ -23,8 +23,13 @@ class Release
      dry_run? ? next_version : puppet_module.version
   end
 
+  # @returns [String] the release level
+  def level
+     options[:level] || 'patch' 
+  end
+
   def next_version
-    puppet_module.version.next
+    puppet_module.next_version(level)
   end
 
   def tag(id)
@@ -41,7 +46,9 @@ class Release
       return
     end
     raise TagExists.new("Tag v#{version} already exists") if puppet_module.tag_exists?("v#{next_version}", options[:remote])
-    version = puppet_module.bump_patch_version unless options[:bump]
+    if puppet_module.respond_to?("bump_#{level}_version".to_sym)
+      version = puppet_module.public_send("bump_#{level}_version".to_sym) unless options[:bump]
+    end
     # save the update version to the metadata file, then commit
     puppet_module.commit_metadata(options[:remote])
   end
@@ -95,9 +102,9 @@ class Release
     end
   end
 
-  # runs all the required steps to release the software 
+  # runs all the required steps to release the software
   # currently this must be done manually by a release manager
-  # 
+  #
   def release
     unless auto_release?
       print "Have you merged your code?  Did you fetch and rebase against the upstream?  Want to continue (y/n)?: ".yellow
@@ -114,7 +121,7 @@ class Release
     # tags the r10k-module with the version found in the metadata.json file
     tag(id)
     # pushes the updated code and tags to the upstream repo
-    if auto_release? 
+    if auto_release?
      push
      return
     end
@@ -125,8 +132,8 @@ class Release
       $?.success?
     else
       puts "Nah, forget it, this release wasn't that cool anyways.".yellow
-      false 
-    end 
+      false
+    end
   end
 
   def add_upstream_remote
