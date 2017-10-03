@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    release_manager (0.5.3)
+    release_manager (0.6.0)
       gitlab (~> 4.2.0)
       highline (~> 1.7)
       rugged (~> 0.26)

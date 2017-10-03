@@ -2,8 +2,10 @@
 
 ## Unreleased
 
+## 0.6.0
  * Adds the ability to release-mod to dump a specific SemVer release level
- 
+ * Fixes issue with changelog file not existing
+
 ## 0.5.3
 
  * Fixes output when applying patch
