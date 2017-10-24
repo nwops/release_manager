@@ -2,7 +2,7 @@
 
 ## Unreleased
  * Fixes #8 - files disappear from change set
-
+ * Fixes #1 - deploy-mod creates commit everytime
 ## 0.6.0
  * Adds the ability to release-mod to dump a specific SemVer release level
  * Fixes issue with changelog file not existing

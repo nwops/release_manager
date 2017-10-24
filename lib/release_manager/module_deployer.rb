@@ -68,7 +68,11 @@ class ModuleDeployer
       else
         puppetfile.write_version(puppet_module.name, latest_version)
         puppetfile.write_source(puppet_module.name, puppet_module.source)
-        puppetfile.write_to_file
+        updated = puppetfile.write_to_file
+        unless updated
+          logger.warn "Module #{puppet_module.name} with version #{latest_version} has already been deployed, skipping deployment"
+          return
+        end
         logger.info "Updated module #{puppet_module.name} in Puppetfile to version: #{latest_version}"
         if options[:commit]
           puppetfile.commit("bump #{puppet_module.name} to version #{latest_version}")

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require_relative 'control_mod'
 require_relative 'errors'
+require 'fileutils'
 require 'json'
 require 'release_manager/puppet_module'
 
@@ -139,7 +140,17 @@ class Puppetfile
     end
   end
 
+  def diff(a,b)
+    FileUtils.compare_stream(a,b)
+  end
+
+  # @return [Boolean] - true if writing to file occurred, false otherwise
   def write_to_file
+    contents = to_s
+    a = StringIO.new(contents)
+    b = File.new(puppetfile)
+    # do not write to the file if nothing changed
+    return false if FileUtils.compare_stream(a,b)
     File.write(puppetfile, to_s)
   end
 

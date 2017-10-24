@@ -14,4 +14,5 @@ class InvalidSshkey < Exception; end
 class InvalidBranchName < Exception; end
 class PatchError < Exception; end
 class AlreadyReleased < Exception; end
+class AlreadyDeployed < Exception; end
 class TagExists < Exception; end
