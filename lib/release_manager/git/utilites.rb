@@ -225,7 +225,7 @@ module ReleaseManager
         return add_all if file == '.'
         index = repo.index
         file.slice!(repo.workdir)
-        index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644)
+        index.add(:path => file, :oid => Rugged::Blob.from_workdir(repo, file), :mode => 0100644, valid: false)
       end
 
       # @param [String] file - the path to the patch file you want to apply
@@ -276,10 +276,6 @@ module ReleaseManager
         index.remove(file)
       end
 
-      def update_cli_index
-        `#{git_command} update-index --really-refresh`
-      end
-
       # @param [String] message - the message you want in the commit
       def create_commit(message)
         unless author_name and author_email
@@ -288,14 +284,14 @@ module ReleaseManager
         # get the index for this repository
         repo.status { |file, status_data| logger.debug "#{file} has status: #{status_data.inspect}" }
         index = repo.index
-        index.write
         options = {}
         options[:author] = author
         options[:message] = message
         options[:committer] = author
-        options[:parents] = repo.empty? ? [] : [repo.head.target_id].compact
+        options[:parents] = repo.empty? ? [] : [repo.head.target].compact
         options[:update_ref] = 'HEAD'
         options[:tree] = index.write_tree
+        index.write
         oid = Rugged::Commit.create(repo, options)
         if oid
           logger.info("Created commit #{message}")
@@ -303,7 +299,6 @@ module ReleaseManager
         else
           logger.warn("Something went wrong with the commit")
         end
-        update_cli_index # for some reason the command line doesn't refresh the index after committing.
         oid
       end
 

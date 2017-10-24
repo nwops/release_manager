@@ -315,8 +315,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Develpment Environment Setup
 ### Setting up your Gitlab Instance
-1. Ensure you have docker installed
-2. `docker-compose up`
+1. Ensure you have docker and docker-compose installed
+2. run `docker-compose up` to start all the services
 3. Visit http://localhost:8000/
 4. Create a password  (password123)
 5. Login (root/password123)

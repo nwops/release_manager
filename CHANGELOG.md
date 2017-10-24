@@ -1,6 +1,7 @@
 # Release Manager
 
 ## Unreleased
+ * Fixes #8 - files disappear from change set
 
 ## 0.6.0
  * Adds the ability to release-mod to dump a specific SemVer release level
