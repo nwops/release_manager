@@ -84,8 +84,14 @@ class PuppetModule < WorkflowAction
    parts.join '.'
  end
 
+ # @return [Array<String>] - returns a array of version strings with the v in the name
+ def version_tags
+   tags.find_all {|tag| tag =~ /\Av\d/ }
+ end
+
+ # @return [String] -  the latest tag in a series of versioned tags
  def latest_tag
-   v = tags.sort do |a,b|
+   v = version_tags.sort do |a,b|
     Gem::Version.new(a.tr('v', '')) <=> Gem::Version.new(b.tr('v', ''))
    end
    v.last

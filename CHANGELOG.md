@@ -1,6 +1,7 @@
 # Release Manager
 
 ## Unreleased
+ * Fixes #3 - release-mod fails when trying to sort tags
  * Fixes #8 - files disappear from change set
  * Fixes #1 - deploy-mod creates commit everytime
 ## 0.6.0

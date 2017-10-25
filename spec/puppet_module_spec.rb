@@ -64,6 +64,17 @@ describe PuppetModule do
     expect(puppetmodule.latest_tag).to eq('v0.0.12')
   end
 
+  it 'return latest tag when not ordered' do
+    allow(puppetmodule).to receive(:tags).and_return(%w{custom v0.0.3 v0.0.10 v0.0.11 legit 0.0.11 0.0.1 v0.0.12})
+    expect(puppetmodule.latest_tag).to eq('v0.0.12')
+  end
+
+  it 'returns versioned tags only' do
+    allow(puppetmodule).to receive(:tags).and_return(%w{custom v0.0.3 v0.0.10 v0.0.11 legit 0.0.11 0.0.1 v0.0.12})
+    expect(puppetmodule.version_tags).to_not include('custom')
+    expect(puppetmodule.version_tags).to_not include('legit')
+  end
+
   describe 'r10k-control' do
     let(:path) do
       File.join(fixtures_dir, 'r10k-control')
