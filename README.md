@@ -47,7 +47,7 @@ This gem provides workflow automations around releasing and deploying puppet mod
 6. Must have a r10k-control repo (name can vary)
 7. Must have a Gitlab API Access token (per user)
 8. Must have the libssh-dev library package installed
-
+9. Must tag code with version tags ie. `v1.2.3`
 ## Installation
 
 Add this line to your application's Gemfile:
