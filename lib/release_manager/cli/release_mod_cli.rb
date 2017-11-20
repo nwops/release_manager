@@ -30,6 +30,12 @@ Summary: Bumps the module version to the next revision and
          version by reading the metadata.json file. This should
          be run inside a module directory.
 
+ Examples:
+      release-mod -l minor
+      release-mod -l patch -s patch1
+      release-mod -m ~/repos/r10k-control
+      
+
         EOF
         )
         opts.on("-d", "--dry-run", "Do a dry run, without making changes") do |c|
@@ -52,6 +58,9 @@ Summary: Bumps the module version to the next revision and
         end
         opts.on('--verbose', "Extra logging") do |c|
           options[:verbose] = c
+        end
+        opts.on('-s', '--src-branch [BRANCH]', 'The branch you want to base the release from, defaults to dev or master') do |c|
+          options[:src_branch] = c
         end
         opts.on('-r', '--remote-release', "Perform a remote release (For CI systems)") do |c|
           options[:remote] = true

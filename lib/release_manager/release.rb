@@ -156,7 +156,7 @@ class Release
   def run
     begin
       exit -1 unless check_requirements
-      puppet_module.create_dev_branch
+      puppet_module.create_src_branch
       value = release
       unless value
 	      exit 1
