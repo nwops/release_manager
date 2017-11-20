@@ -50,6 +50,7 @@ class Sandbox
   # @param url [String] - the url to clone and fork
   # @param src_target [String] -  the source to checkout from, defaults to 'upstream/dev'
   def setup_control_repo(url, src_target = 'upstream/dev')
+    src_target ||= 'upstream/dev'
     # clone r10k unless already cloned
     puts "## r10k-control ##".yellow
     fork = create_repo_fork(url)
@@ -58,7 +59,7 @@ class Sandbox
     c.fetch('myfork')
     c.fetch('origin')
     c.add_remote(url, 'upstream')
-    raise InvalidBranchName.new("The remote with branch #{src_target} does not exist") unless c.branch_exist?(src_target)
+    raise InvalidBranchName.new("The source #{src_target} does not exist") unless c.branch_exist?(src_target)
     # if the user doesn't have the branch, we create from upstream
     # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
     target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : src_target

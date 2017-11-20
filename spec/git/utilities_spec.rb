@@ -30,7 +30,7 @@ describe ReleaseManager::Git::Utilities do
   end
 
   it '#find_or_create_remote with name and no url' do
-    expect(find_or_create_remote('upstream3')).to be nil
+    expect(find_or_create_remote('upstream3')).to be false
     expect(remote_exists?('upstream3')).to be_falsey
   end
 

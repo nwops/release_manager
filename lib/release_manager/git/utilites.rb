@@ -57,7 +57,7 @@ module ReleaseManager
       # @param [Boolean] reset_url - set to true if you wish to reset the remote url
       # @return [Rugged::Remote] a rugged remote object
       def add_remote(url, remote_name = 'upstream', reset_url = false )
-        return unless git_url?(url)
+        return false unless git_url?(url)
         if remote_exists?(remote_name)
           # ensure the correct url is set
           # this sets a non persistant fetch url
@@ -87,9 +87,13 @@ module ReleaseManager
         repo.remotes[name].url.eql?(url)
       end
 
-      # @param [String] name - the name of the branch
+      # @param name [String] - the name of the branch
       # @return [Boolean] - true if the branch exist
       def branch_exist?(name)
+        # ensure we have the latest branches
+        remote_name = name.split('/').first if name.include?('/')
+        # check to see if we just needed to fetch the upstreams
+        fetch(remote_name) if !repo.branches.exist?(name) && remote_name
         repo.branches.exist?(name)
       end
 

@@ -322,8 +322,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 5. Login (root/password123)
 6. Create a user account for yourself (add Admin role)
 7. Logout as Admin and login as the new user account
-8. Add a group named devops and add yourself to this group
-9. Add another group called mirrors and add yourself to this group
 10. Create a `.env` file in the repo directory and paste these contents in it
   ```ruby
 GITLAB_API_ENDPOINT='http://web/api/v4'

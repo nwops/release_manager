@@ -11,9 +11,11 @@ class Release
   end
 
   def puppet_module
-    @puppet_module ||= PuppetModule.new(path, upstream_repo)
+    @puppet_module ||= PuppetModule.new(path, {upstream: upstream_repo,
+                                               src_branch: options[:src_branch]})
   end
 
+  # @return [String] - the url of the repository defined in the options or environment variable
   def upstream_repo
     options[:repo] || ENV['UPSTREAM_REPO']
   end
@@ -156,7 +158,7 @@ class Release
   def run
     begin
       exit -1 unless check_requirements
-      puppet_module.create_dev_branch
+      puppet_module.create_src_branch
       value = release
       unless value
 	      exit 1

@@ -40,6 +40,7 @@ describe Sandbox do
       r10k_repo_url: 'git@github.com:puppetlabs/control-repo.git',
       r10k_repo_path: File.expand_path(File.join(ENV['HOME'], 'repos', 'r10k-control')),
       modules: ['module1', 'module2', 'module3'],
+      src_target: 'upstream/development',
       repos_path: File.expand_path(File.join(ENV['HOME'], 'repos')),
     }
   end
@@ -98,7 +99,7 @@ describe Sandbox do
     expect_any_instance_of(ControlRepo).to receive(:clone).with(r10k_url, r10k_path).and_return(true)
     allow_any_instance_of(ControlRepo).to receive(:repo).and_return(r10k_repo)
 
-    expect(box.setup_control_repo(r10k_url)).to be_a(ControlRepo)
+    expect(box.setup_control_repo(r10k_url, "upstream/development")).to be_a(ControlRepo)
   end
 
   # it 'setup module repo' do
@@ -122,6 +123,10 @@ describe Sandbox do
   #   allow(remote_collection).to receive(:push).and_return(true)
   #   expect(box.setup_module_repo(mod)).to be_a(PuppetModule)
   #end
+
+  # it 'create a sandbox from a different branch other than dev' do
+
+  # end
   #
   # it 'r10k control repo should have origin and upstream set to same' do
   #

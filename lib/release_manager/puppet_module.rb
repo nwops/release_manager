@@ -6,17 +6,22 @@ require 'release_manager/git/utilites'
 require 'rugged'
 
 class PuppetModule < WorkflowAction
- attr_reader :name, :metadata_file, :path, :version, :upstream
+ attr_reader :name, :metadata_file, :path, :version, :upstream, :options
  attr_writer :version, :source
 
  include ReleaseManager::Git::Utilities
  include ReleaseManager::Logger
  include ReleaseManager::VCSManager
 
- def initialize(mod_path, upstream = nil)
+ # @param mod_path [String] - the path to the module
+ # @param options [Hash] - a hash of options
+ # @option upstream [String] - the upstream url
+ # @option src_branch [String] - the source of the branch
+ def initialize(mod_path, options = {})
    raise ModNotFoundException.new("#{mod_path} is not a valid puppet module path") if mod_path.nil?
    @path = mod_path
-   @upstream = upstream
+   @options = options
+   @upstream = options[:upstream]
    @metadata_file = File.join(mod_path, 'metadata.json')
  end
 
@@ -165,6 +170,7 @@ class PuppetModule < WorkflowAction
    JSON.pretty_generate(metadata)
  end
 
+ # @return [Boolean] - true if the module is an r10k-control repository
  def r10k_module?
    mod_name =~ /r10k[-_]?control/i
  end
@@ -173,21 +179,31 @@ class PuppetModule < WorkflowAction
    @upstream ||= git_upstream_url
  end
 
- # ensures the dev branch has been created and is up to date
- def create_dev_branch
+ # @param branch [String] -  the name of the source branch to create and rebase from
+ # creates a branch and checkouts out the branch with the latest source of the upstream source
+ def create_src_branch(branch = src_branch)
    fetch('upstream')
-   create_branch(src_branch, "upstream/#{src_branch}")
+   create_branch(branch, "upstream/#{branch}")
    # ensure we have updated our local branch
-   checkout_branch(src_branch)
-   rebase_branch(src_branch, src_branch, 'upstream')
+   checkout_branch(branch)
+   rebase_branch(branch, branch, 'upstream')
+ end
+
+ # ensures the dev branch has been created and is up to date
+ # @deprecated Use {#create_src_branch} instead of this method which defaults to dev or master branch
+ def create_dev_branch
+   create_src_branch(src_branch)
  end
 
  # @returns [String] - the source branch to push to
- # if r10k-control this branch will be dev, otherwise master
+ # if the user supplied the src_branch we use that otherwise
+ # if the module is r10k-control this branch will be dev,
+ # if the module is not r10k-control we use master
  def src_branch
-   r10k_module? ? 'dev' : 'master'
+   options[:src_branch] || (r10k_module? ? 'dev' : 'master')
  end
 
+ # pushes the source and tags
  def push_to_upstream
    push_branch(source, src_branch)
    push_tags(source)
@@ -230,6 +246,9 @@ class PuppetModule < WorkflowAction
    end
  end
 
+ # @param tag [String] - the name of the tag
+ # @param remote [String] - check the remote for the tag, defaults to false
+ # @return [Boolean] - returns true if the tag exists
  def tag_exists?(tag, remote = false)
    if remote
      remote_tag_exists?(source, tag)
@@ -238,14 +257,18 @@ class PuppetModule < WorkflowAction
    end
  end
 
+ # creates a file with the puppet metadata.json content written to disk
  def to_metadata_file
    logger.info("Writing to file #{metadata_file}")
    File.write(metadata_file, to_s)
  end
 
  # @return [ControlRepo] - creates a new control repo object and clones the url unless already cloned
+ # @param url [String] - the upstream url
+ # @param branch [String] -  the source branch
  def self.create(path, url, branch = 'master')
-   c = PuppetModule.new(path, url)
+   options = {upstream: url, src_branch: branch}
+   c = PuppetModule.new(path, options)
    c.clone(url, path)
    c
  end
