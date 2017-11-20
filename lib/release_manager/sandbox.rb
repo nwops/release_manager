@@ -47,8 +47,9 @@ class Sandbox
   end
 
   # @return [ControlRepo] - creates a new control repo object and clones the url unless already cloned
-  # @param [String] url - the url to clone and fork
-  def setup_control_repo(url)
+  # @param url [String] - the url to clone and fork
+  # @param src_target [String] -  the source to checkout from, defaults to 'upstream/dev'
+  def setup_control_repo(url, src_target = 'upstream/dev')
     # clone r10k unless already cloned
     puts "## r10k-control ##".yellow
     fork = create_repo_fork(url)
@@ -57,9 +58,10 @@ class Sandbox
     c.fetch('myfork')
     c.fetch('origin')
     c.add_remote(url, 'upstream')
+    raise InvalidBranchName.new("The remote with branch #{src_target} does not exist") unless c.branch_exist?(src_target)
     # if the user doesn't have the branch, we create from upstream
     # and then checkout from the fork, we defer pushing the branch to later after updating the puppetfile
-    target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : 'upstream/dev'
+    target = c.branch_exist?("upstream/#{name}") ? "upstream/#{name}" : src_target
     # if the user has previously created the branch but doesn't exist locally, no need to create
     c.create_branch(name, target)
     c.checkout_branch(name)
@@ -136,7 +138,7 @@ class Sandbox
   # cleanup branches
   def create(r10k_url)
     setup_repos_dir(repos_dir)
-    @control_repo = setup_control_repo(r10k_url)
+    @control_repo = setup_control_repo(r10k_url, options[:src_target])
     # get modules we are interested in
     module_names.each do | mod_name |
       puts "## #{mod_name} ##".yellow

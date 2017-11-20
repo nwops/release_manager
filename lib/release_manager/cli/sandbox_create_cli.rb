@@ -54,6 +54,7 @@ export GITLAB_API_HTTPARTY_OPTIONS="{verify: false}"
 Examples:
   #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" 
   #{opts.program_name} -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2,devops,ci_runner"
+  #{opts.program_name} -n my_sandbox -s "upstream/v0.5.0" 
 
 Options:
         EOF
@@ -63,6 +64,9 @@ Options:
         end
         opts.on('-n', "--name NAME", "The name of your sandbox") do |n|
           options[:sandbox_name] = n
+        end
+        opts.on('-s', "--src-target REMOTE/REF", "The source of the target to create your sandbox from, defaults to upstream/dev") do |n|
+          options[:src_target] = n
         end
         opts.on('--control-url R10K_REPO_URL', "git url to the r10k-control repo, defaults to R10K_CONTROL_URL env variable") do |r|
           options[:r10k_repo_url] = r
@@ -101,6 +105,11 @@ Options:
       options[:repos_path] ||= File.expand_path(File.join(ENV['HOME'], 'repos'))
       options[:r10k_repo_url] ||= ENV['R10K_REPO_URL']
 
+      options[:src_target] ||= 'upstream/dev'
+      if options[:src_target].split("/").count < 2
+        puts "Please use a source target that conforms to the remote/ref pattern".fatal
+        exit 1
+      end
       unless options[:r10k_repo_url]
         puts "Please set the R10K_REPO_URL environment variable or use the --control-url option".fatal
         puts "Example: export R10K_REPO_URL='git@gitlab.com:devops/r10k-control.git'".fatal
