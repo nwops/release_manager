@@ -1,7 +1,8 @@
 # Release Manager
 
-## Unreleased
+## 0.8.0
  * Allows for creating sandboxes from different targets
+ * Allow for releasing one off patches with release-mod
  * Fixes #11 - release-mod should show which variables to set
 ## 0.7.0
  * Fixes #3 - release-mod fails when trying to sort tags
