@@ -308,11 +308,11 @@ uses the version in metadata.json file as a reference and increments to semver i
 
 Follow the steps below to create a new patch release and deploy straight to production
 
-1. Create a new sandbox based on the branch or tag you want to fix. `sandbox-create -s v0.5.0 -n patch_0.5.1`
+1. Create a new sandbox based on the branch or tag you want to fix. `sandbox-create -s upstream/v0.5.0 -n patch_0.5.1`
 2. cd ~/repos/r10k-control
 3. Make your changes in that branch and update the changelog
-4. Push your code to the remote Git repo and activate your CI pipeline (optional)
-5. Release the new version `release-mod -l patch -s patch_0.5.1`  (creates tag v0.5.1)
+4. Push your code to the remote Git repo and activate your CI pipeline (recommended)
+5. Release the new version `release-mod -l patch -s patch_0.5.1`  (creates tag v0.5.1 from the sandbox)
 6. Deploy the patch release to production `deploy-r10k -s v0.5.1 -d production`
 
 ## Configuration Settings
