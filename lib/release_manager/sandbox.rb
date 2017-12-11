@@ -138,9 +138,15 @@ class Sandbox
   # set upstream to original namespace
   # cleanup branches
   def create(r10k_url)
-    setup_repos_dir(repos_dir)
-    @control_repo = setup_control_repo(r10k_url, options[:src_target])
+    begin
+      setup_repos_dir(repos_dir)
+      @control_repo = setup_control_repo(r10k_url, options[:src_target])
     # get modules we are interested in
+    rescue InvalidBranchName => e
+      logger.error(e.message)
+      exit 1
+    end
+
     module_names.each do | mod_name |
       puts "## #{mod_name} ##".yellow
       begin

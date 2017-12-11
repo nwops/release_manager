@@ -11,12 +11,14 @@ module ReleaseManager
       end
 
       # @param [String] remote_name - the name of the remote
-      def fetch(remote_name = 'upstream')
+      def fetch(remote_name = 'upstream', tags = false)
+        remote_name ||= 'upstream'
         return unless remote_exists?(remote_name)
         remote = repo.remotes[remote_name]
         options = {credentials: credentials.call(remote.url)}
         logger.info("Fetching remote #{remote_name} from #{remote.url}")
         options[:certificate_check] = lambda { |valid, host| true } if ENV['GIT_SSL_NO_VERIFY']
+        fetch_cli(remote_name) # helps get tags
         remote.fetch(options)
       end
 
@@ -91,10 +93,15 @@ module ReleaseManager
       # @return [Boolean] - true if the branch exist
       def branch_exist?(name)
         # ensure we have the latest branches
-        remote_name = name.split('/').first if name.include?('/')
+        remote_name, ref = name.split('/', 2)
+        if name.include?('/')
+          remote_name, ref = name.split('/', 2)
+        else
+          ref = name
+        end
         # check to see if we just needed to fetch the upstreams
-        fetch(remote_name) if !repo.branches.exist?(name) && remote_name
-        repo.branches.exist?(name)
+        fetch(remote_name) unless (repo.branches.exist?(name) || ref_exists?(name) || tag_exists?(ref))
+        repo.branches.exist?(name) || ref_exists?(name) || tag_exists?(ref)
       end
 
       # we should be creating the branch from upstream
@@ -102,9 +109,11 @@ module ReleaseManager
       def create_branch(name, target = 'upstream/master')
         # fetch the remote if defined in the target
         unless branch_exist?(name)
-          fetch(target.split('/').first) if target.include?('/')
-          logger.info("Creating branch: #{name} for #{path}")
-          repo.create_branch(name, target)
+          remote_name, ref = target.split('/', 2)
+          fetch(remote_name)
+          logger.info("Creating branch: #{name} for #{path} from #{target}")
+          found_ref = find_ref(target)
+          repo.create_branch(name, found_ref)
         else
           repo.branches[name]
         end
@@ -126,6 +135,17 @@ module ReleaseManager
         refs = refs.map { |r| r.prepend('+') } if force
         logger.info("Pushing branch #{branch} to remote #{remote.url}")
         remote.push(refs, credentials: credentials)
+      end
+
+      # @return [Array] - returns an array of tag names
+      def tags
+        repo.tags.map(&:name)
+      end
+
+      # @param name [String] - the name of the tag to check for existence
+      # @return [Boolean] - return true if the tag exists
+      def tag_exists?(name)
+       tags.include?(name)
       end
 
       # push all the tags to the remote
@@ -241,6 +261,12 @@ module ReleaseManager
           output = `#{git_command} apply #{file} 2>&1`
         end
         raise PatchError.new(output) unless $?.success?
+      end
+
+      # @param [String] - the name of the remote to fetch from
+      # @note this is a hack to get around libgit2 inability to get remote tags
+      def fetch_cli(remote)
+        `#{git_command} fetch #{remote} 2>&1 > /dev/null`
       end
 
       # [Rugged::Diff] a rugged diff object
@@ -390,13 +416,28 @@ module ReleaseManager
       end
 
       # @param sha_or_ref [String] - the name or sha of the ref
+      # @return [Boolean] true if the ref exists
+      def ref_exists?(sha1_or_ref)
+        begin
+          find_ref(sha1_or_ref)
+        rescue Rugged::ReferenceError => e
+          false
+        end
+      end
+
+      # @param sha_or_ref [String] - the name or sha of the ref
       # @return [String] the oid of the sha or ref
       def find_ref(sha_or_ref)
         case sha_or_ref
           when Rugged::Object
             sha_or_ref.oid
           else
-            repo.rev_parse_oid(sha_or_ref)
+            begin
+              repo.rev_parse_oid(sha_or_ref)
+            rescue Rugged::ReferenceError => e
+              tag = repo.tags.find{|t| t.name == sha_or_ref.split('/').last}
+              repo.rev_parse_oid(tag.target.oid) if tag
+            end
         end
       end
     end

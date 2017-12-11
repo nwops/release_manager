@@ -48,6 +48,8 @@ This gem provides workflow automations around releasing and deploying puppet mod
 7. Must have a Gitlab API Access token (per user)
 8. Must have the libssh-dev library package installed
 9. Must tag code with version tags ie. `v1.2.3`
+10. Must keep a CHANGELOG.md
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -73,6 +75,15 @@ gem install specific_install  # unless already installed
 gem specific_install https://github.com/nwops/release_manager  
 ```
 
+## Usage Summary
+There are several cli utilities bundled with the gem, each one can be used independently of the other.  Detailed usage can be
+found further below in this document.
+
+* `sandbox-create -n my_sandbox`  - Sandbox creation and module repo forking (most popular)
+* `deploy-mod`  - Sandbox creation and repo forking
+* `deploy-r10k` - Deploying your r10k repo to other branches in the same repo using merge requests
+* `release-mod`  - Sandbox creation and repo forking  (Also popular)
+* `bump-changelog` - for directly manipulating the changelog
 
 ## The workflow problem
 R10k allows us to create a puppet environment for each branch on the r10k-control repository. This makes isolating code deployments
@@ -98,7 +109,7 @@ to use those new branches and forks.  This can be a huge burden and consume some
 15. push new branch on each forked project
 
 Yikes!  This is a long list of things to do.  It is human nature to skip some or all of these steps to save time even though
-it is in our best interest to follow these steps.  As humans we will always resort to the path of least resistance. 
+it is in our best interest to follow these steps.  Most humans we will always resort to the path of least resistance. 
 
 In an effort to force good practices and reduce time and effort, release-manager will automate almost all of the tasks into 
 a single command called `sandbox-create`.
@@ -108,7 +119,7 @@ Additionally there are other commands that help with the release and deploy proc
 ### R10k Sandbox Creation steps (the easy way)
 `sandbox-create -n my_sandbox --modules='roles,profiles,hieradata,sqlserver'`  
 
-## Usage
+## Detailed Usage
 
 Release manager provides the following commands to help you create sandboxes, release and deploy puppet code.
 
@@ -127,21 +138,47 @@ Summary: Creates a new r10k sandbox by forking and creating a new branch on r10k
          for each module, updates the r10k-control Puppetfile to use those forks and branches
          and pushes the branch to the upstream r10k-control.
 
-Example: sandbox-create -n my_sandbox -m "roles,profiles,developer"
-Example: sandbox-create -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2, p2ksdafs,devops,ci_runner" 
-
 
 Note: If you already have any of these modules cloned, this script will attempt to update those modules
       using git fetch and git checkout -b sandbox_name upstream/master.  So this should not destroy anything.
 
+Configuration:
+
+This script uses the following environment variables to automatically set some options, please ensure 
+they exist in your shell environment.  You can set an environment variable in the shell or define 
+in your shell startup files.
+
+Shell:  export VARIABLE_NAME=value
+
+R10K_REPO_URL            - The git repo url to r10k-control (ie. git@gitlab.com:devops/r10k-control.git)
+GITLAB_API_ENDPOINT      - The api path to the gitlab server  (ie. https://gitlab_server/api/v3)
+                           replace gitlab_server with your server hostname
+GITLAB_API_PRIVATE_TOKEN - The gitlab user api token.  
+                           You can get a token here (http://web/profile/personal_access_tokens, 
+                           Ensure api box is checked.
+DEFAULT_MODULES          - The default set of modules to fork use when 
+                           a sandbox (ie. export DEFAULT_MODULES='hieradata, roles')
+
+DEFAULT_MEMBERS          - The default members each forked project should add permissions
+                           to ( ie, DEFAULT_MEMBERS='ci_runner,r10k_user' )
+
+If your gitlab server has a invalid certificate you can set the following variable to "fix" that trust issue.
+export GITLAB_API_HTTPARTY_OPTIONS="{verify: false}"
+
+Examples:
+  sandbox-create -n my_sandbox -m "roles,profiles,developer" 
+  sandbox-create -n my_sandbox -m "roles,profiles,developer" --members="p1dksk2,devops,ci_runner"
+  sandbox-create -n my_sandbox -s "upstream/v0.5.0" 
+
+Options:
         --members DEFAULT_MEMBERS    A comman seperated list of members to add to forked projects
     -n, --name NAME                  The name of your sandbox
+    -s, --src-target REMOTE/REF      The source of the target to create your sandbox from, defaults to upstream/dev
         --control-url R10K_REPO_URL  git url to the r10k-control repo, defaults to R10K_CONTROL_URL env variable
     -m, --modules MODULES            A comma separated list of modules names from the Puppetfile to fork and branch
     -r, --repos-dir [REPOS_PATH]     The repos path to clone modules to. Defaults to: /home/appuser/repos
     -c, --control-dir [CONTROL_DIR]  The r10k-control repo path. Defaults to: /home/appuser/repos/r10k-control
         --verbose                    Extra logging
-
 
 ```
 
@@ -243,6 +280,31 @@ and creates a new 'Unrelease Section on top
 
 If using the `release-mod` command there is no need to run the `bump-changelog`command as it is part of the process already.
 
+## Common Workflows
+### Creating releases
+You worked hard on your code and now you want to release your software for others to enjoy.
+Follow the steps below to version your code before deployment.  This these changes are considered major
+we want to create a 2.0.0 release.
+
+1. run `release-mod -l major` from the root of the module directory (use `-d` for a dry run)
+
+That's it, all you need to do is run that command.  Note, by design you are not allowed to enter a version number.  Release Manager
+uses the version in metadata.json file as a reference and increments to semver identifiers. 
+
+
+### Creating one off releases
+
+1. Did you deploy a release all the way to production only to find a bug?
+2. Do you want to skip all other deployment stages with your patch?
+
+Follow the steps below to create a new patch release and deploy straight to production
+
+1. Create a new sandbox based on the branch or tag you want to fix. `sandbox-create -s v0.5.0 -n patch_0.5.1`
+2. cd ~/repos/r10k-control
+3. Make your changes in that branch and update the changelog
+4. Push your code to the remote Git repo and activate your CI pipeline (optional)
+5. Release the new version `release-mod -l patch -s patch_0.5.1`  (creates tag v0.5.1)
+6. Deploy the patch release to production `deploy-r10k -s v0.5.1 -d production`
 
 ## Configuration Settings
 The following environment variables will automatically set required parameters and defaults.  It is suggested you put 

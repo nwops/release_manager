@@ -35,9 +35,9 @@ Summary: Deploys the source ref into the dest branch by diffing the two and appl
    6. push branch and create merge request
 
    Examples:
-      deploy-r10k dev qa
       deploy-r10k -s dev -d qa
       deploy-r10k -p ~/repos/r10k-control -s dev -d qa
+      deploy-r10k -s v0.5.1 -d production
 
 
         EOF

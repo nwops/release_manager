@@ -37,7 +37,7 @@ in your shell startup files.
 Shell:  export VARIABLE_NAME=value
 
 R10K_REPO_URL            - The git repo url to r10k-control (ie. git@gitlab.com:devops/r10k-control.git)
-GITLAB_API_ENDPOINT      - The api path to the gitlab server  (ie. https://gitlab_server/api/v3)
+GITLAB_API_ENDPOINT      - The api path to the gitlab server  (ie. https://gitlab_server/api/v4)
                            replace gitlab_server with your server hostname
 GITLAB_API_PRIVATE_TOKEN - The gitlab user api token.  
                            You can get a token here (#{gitlab_server}/profile/personal_access_tokens, 
