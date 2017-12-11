@@ -36,6 +36,22 @@ Summary: Bumps the module version to the next revision and
       release-mod -m ~/repos/r10k-control
       
 
+Configuration:
+
+This script uses the following environment variables to automatically set some options, please ensure 
+they exist in your shell environment.  You can set an environment variable in the shell or define 
+in your shell startup files.
+
+Shell:  export VARIABLE_NAME=value
+
+R10K_REPO_URL            - The git repo url to r10k-control (ie. git@gitlab.com:devops/r10k-control.git)
+GITLAB_API_ENDPOINT      - The api path to the gitlab server  (ie. https://gitlab_server/api/v4)
+                           replace gitlab_server with your server hostname
+GITLAB_API_PRIVATE_TOKEN - The gitlab user api token.  
+                           You can get a token here (#{ReleaseManager.gitlab_server}/profile/personal_access_tokens), 
+                           Ensure api box is checked.
+
+Options:
         EOF
         )
         opts.on("-d", "--dry-run", "Do a dry run, without making changes") do |c|
@@ -66,6 +82,18 @@ Summary: Bumps the module version to the next revision and
           options[:remote] = true
         end
       end.parse!
+
+      unless ENV['GITLAB_API_ENDPOINT']
+        puts "Please set the GITLAB_API_ENDPOINT environment variable".fatal
+        puts "Example: export GITLAB_API_ENDPOINT=https://gitlab.com/api/v4".fatal
+        exit 1
+      end
+
+      unless ENV['GITLAB_API_PRIVATE_TOKEN']
+        puts "Please set the GITLAB_API_PRIVATE_TOKEN environment variable".fatal
+        puts "Example: export GITLAB_API_PRIVATE_TOKEN=kdii2ljljijsldjfoa".fatal
+        exit 1
+      end
 
       # default to patch
       options[:level] ||= 'patch'

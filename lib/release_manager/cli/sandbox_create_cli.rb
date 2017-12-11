@@ -4,12 +4,7 @@ module ReleaseManager
   class SandboxCreateCli
 
     def self.gitlab_server
-      if ENV['GITLAB_API_ENDPOINT']
-        if data = ENV['GITLAB_API_ENDPOINT'].match(/(https?\:\/\/[\w\.]+)/)
-          return data[1]
-        end
-      end
-      'https://gitlab.com'
+     ReleaseManager.gitlab_server
     end
 
     def self.run
@@ -88,7 +83,7 @@ Options:
       end.parse!
       unless ENV['GITLAB_API_ENDPOINT']
         puts "Please set the GITLAB_API_ENDPOINT environment variable".fatal
-        puts "Example: export GITLAB_API_ENDPOINT=https://gitlab.com/api/v3".fatal
+        puts "Example: export GITLAB_API_ENDPOINT=https://gitlab.com/api/v4".fatal
         exit 1
       end
 

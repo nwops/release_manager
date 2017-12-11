@@ -2,7 +2,7 @@
 
 ## Unreleased
  * Allows for creating sandboxes from different targets
- 
+ * Fixes #11 - release-mod should show which variables to set
 ## 0.7.0
  * Fixes #3 - release-mod fails when trying to sort tags
  * Fixes #8 - files disappear from change set

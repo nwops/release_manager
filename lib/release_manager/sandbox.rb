@@ -218,6 +218,7 @@ class Sandbox
   # if the user does not pass in the git url we assume the repo already exist
   # if the repo doesn't exist we clone the url
   def self.create(name, options)
+
     box = Sandbox.new(name, options[:modules],
                       options[:r10k_repo_path],
                       options[:repos_path], options)

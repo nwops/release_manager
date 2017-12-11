@@ -28,6 +28,13 @@ class String
   end
 end
 module ReleaseManager
-
+  def self.gitlab_server
+    if ENV['GITLAB_API_ENDPOINT']
+      if data = ENV['GITLAB_API_ENDPOINT'].match(/(https?\:\/\/[\w\.]+)/)
+        return data[1]
+      end
+    end
+    'https://gitlab.com'
+  end
 end
 

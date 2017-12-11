@@ -39,7 +39,7 @@ Summary: Deploys the source ref into the dest branch by diffing the two and appl
       deploy-r10k -p ~/repos/r10k-control -s dev -d qa
       deploy-r10k -s v0.5.1 -d production
 
-
+Options:
         EOF
         )
         opts.on('-p', "--puppetfile [PUPPETFILE]", "Path to R10k Puppetfile, defaults to #{puppetfile_path}") do |p|

@@ -15,6 +15,7 @@ module ReleaseManager
              tag version. Revmoes any branch or ref reference and replaces
              with tag.  Currently it is up to you to commit and push the Puppetfile change.
 
+Options:
         EOF
         )
         opts.on('-p', "--puppetfile [PUPPETFILE]", 'Path to R10k Puppetfile, defaults to ~/repos/r10k-control/Puppetfile') do |p|
