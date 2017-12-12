@@ -9,25 +9,31 @@ class RemoteRelease < Release
   # currently this must be done manually by a release manager
   #
   def release
-    unless auto_release?
-      print "Have you merged your code?  Did you fetch and rebase against the upstream?  Want to continue (y/n)?: ".yellow
-      answer = gets.downcase.chomp
-      if answer == 'n'
-        return false
+    begin
+      unless auto_release?
+        print "Have you merged your code?  Did you fetch and rebase against the upstream?  Want to continue (y/n)?: ".yellow
+        answer = gets.downcase.chomp
+        if answer == 'n'
+          return false
+        end
+        print "Ready to release version #{version.next} to #{puppet_module.source}\n and forever change history(y/n)?: ".yellow
+        answer = gets.downcase.chomp
+        if answer != 'y'
+          puts "Nah, forget it, this release wasn't that cool anyways.".yellow
+          return false
+        end
       end
-      print "Ready to release version #{version.next} to #{puppet_module.source}\n and forever change history(y/n)?: ".yellow
-      answer = gets.downcase.chomp
-      if answer != 'y'
-        puts "Nah, forget it, this release wasn't that cool anyways.".yellow
-        return false
-      end
+      # updates the metadata.js file to the next version
+      bump
+      # updates the changelog to the next version based on the metadata file
+      id = bump_log
+      # tags the r10k-module with the version found in the metadata.json file
+      tag(id)
+    rescue Rugged::TagError => e
+      logger.fatal(e.message)
+      logger.fatal("You might need to rebase your branch")
+      exit 1
     end
-    # updates the metadata.js file to the next version
-    bump
-    # updates the changelog to the next version based on the metadata file
-    id = bump_log
-    # tags the r10k-module with the version found in the metadata.json file
-    tag(id)
   end
 
   def run

@@ -1,5 +1,8 @@
 # Release Manager
 
+## Unreleased
+ * Improves error handling when tags already exist
+
 ## 0.8.0
  * Allows for creating sandboxes from different targets
  * Allow for releasing one off patches with release-mod
