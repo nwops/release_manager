@@ -1,6 +1,8 @@
 # Release Manager
 
 ## Unreleased
+
+## 0.8.1
  * Improves error handling when tags already exist
  * Fixes #12 - deploy-r10k does not write a patch file
 ## 0.8.0
