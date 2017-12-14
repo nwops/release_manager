@@ -99,6 +99,7 @@ class R10kDeployer
     return control_repo.logger.info("nothing to commit or deploy") if diff.deltas.count < 1
     Tempfile.open('git_patch') do |patchfile|
       patchfile.write(diff.patch)
+      patchfile.rewind  # allows us to read from the beginning of the file
       control_repo.apply_patch(patchfile.path)
       control_repo.add_all
     end

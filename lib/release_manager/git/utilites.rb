@@ -255,8 +255,10 @@ module ReleaseManager
       # @param [String] file - the path to the patch file you want to apply
       def apply_patch(file)
         # TODO: change this to rugged implementation
+        empty = File.read(file).length < 1
         logger.info("Applying patch #{file}")
         output = ''
+        logger.debug("The patch file is empty for some reason") if empty
         Dir.chdir(path) do
           output = `#{git_command} apply #{file} 2>&1`
         end

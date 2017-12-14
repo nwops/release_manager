@@ -2,7 +2,7 @@
 
 ## Unreleased
  * Improves error handling when tags already exist
-
+ * Fixes #12 - deploy-r10k does not write a patch file
 ## 0.8.0
  * Allows for creating sandboxes from different targets
  * Allow for releasing one off patches with release-mod
