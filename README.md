@@ -89,11 +89,32 @@ There are several cli utilities bundled with the gem, each one can be used indep
 found further below in this document.
 
 * `sandbox-create -n my_sandbox`  - Sandbox creation and module repo forking (most popular)
-* `deploy-mod`  - Sandbox creation and repo forking
+* `deploy-mod`  - (module) Deploy the latest version of your mod to r10k-control Puppetfile
+* `deploy-mod`  - (r10k repo) Deploy the latest version (tags) of your r10k-control repo branch to other branches
 * `deploy-r10k` - Deploying your r10k repo to other branches in the same repo using merge requests
-* `release-mod`  - Sandbox creation and repo forking  (Also popular)
+* `release-mod`  - Increments version, tags, updates changelog and releases version to gitlab
 * `bump-changelog` - for directly manipulating the changelog
 
+## Automating the release process
+Over the last few years I have adapted the build->release->deploy process to r10k environments. This is done by
+treating all puppet modules as separate projects, and r10k-control as the AIO (all in one) project the encomposes all the modules.
+
+Where as most people would only merge the changes from one branch to the production branch, Release Manager expects there are multiple stages to pass in order to get to production.  This greatly reduces risk and follows a similar process to traditional software development.
+
+Release Manager enforces this process and will version the r10k-control repo just like a module.  Once that version is released, the version is then deployed to the other puppet environments by merging only the differences between the two branches.  This is done purposely as we will be assured that the contents of v0.1.1 have been deployed to the dest branch (qa, staging, and production).  Additionally, you can have multiple versions in flight at any given time.  So a typical scenario can be something like:
+
+ - feature_branch ( dev + feature/bugfix)
+ - dev (bleeding edge)
+ - qa (v1.1.5)
+ - staging (v1.1.4)
+ - production (v1.0.0)
+ 
+Because most people are accustomed to this release process, it becomes easy to trace where changes are at any given moment. Keeping a changelog in r10k-control helps immensely as well.
+
+Futhermore, if you realize a problem with v1.1.4 and need a hotfix, just create a branch `git checkout -b hotfix upstream/v1.1.4` apply the fix, and release a new version.  They deploy the hotfix to any branch you desire.
+
+Keep in mind releases are immutable.  So once you create a release, you have to cut another release to deploy any changes.  This is by design so that you always know what is deployed.
+ 
 ## The workflow problem
 R10k allows us to create a puppet environment for each branch on the r10k-control repository. This makes isolating code deployments
 simple to use because each branch corresponds to a puppet environment.  However, this workflow implies that you will fork
