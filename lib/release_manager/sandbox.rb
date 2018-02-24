@@ -175,7 +175,7 @@ class Sandbox
     # no need to push if we didn't commit anything
     if committed
       logger.info("Pushing new environment branch: #{name} to upstream")
-      puppetfile.push('upstream', name, true)
+      puppetfile.push('upstream', name, true, false)
     end
     logger.info("Sandbox created successfully")
     return self

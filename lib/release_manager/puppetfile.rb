@@ -50,9 +50,13 @@ class Puppetfile
     modules[name] = ControlMod.new(name, metadata)
   end
 
-  def push(remote, branch, force = false)
+  # @param remote [String] - the remote name
+  # @param branch [String] - the branch to push
+  # @param force [Boolean] - force push , defaults to false
+  # @pram tags [Boolean] - push tags, defaults to true
+  def push(remote, branch, force = false, tags = true)
     push_branch(remote, branch, force)
-    push_tags(remote)
+    push_tags(remote) if tags
   end
 
   def data
