@@ -122,6 +122,7 @@ Options:
       end
       # check options to ensure all values are present
       begin
+        ReleaseManager::VCSManager.default_instance.validate_authorization
         s = Sandbox.create(options[:sandbox_name], options)
       rescue InvalidToken => e
         puts e.message.fatal

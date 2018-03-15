@@ -59,6 +59,7 @@ Options:
       options[:remote] = true
       validate(options)
       path = File.dirname(options[:puppetfile])
+      ReleaseManager::VCSManager.default_instance.validate_authorization
       R10kDeployer.run(path, options)
     end
   end

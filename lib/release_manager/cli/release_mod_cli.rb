@@ -103,6 +103,7 @@ Options:
         puts "expected major minor or patch for parameter -l,  --level. You supplied #{options[:level]}.".fatal
         exit 1
       end
+      ReleaseManager::VCSManager.default_instance.validate_authorization
       r = options[:remote] ?
           RemoteRelease.new(options[:path], options) : Release.new(options[:path], options)
       r.run

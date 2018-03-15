@@ -3,6 +3,7 @@
 ## Unreleased
 
 ## 0.8.2
+ * Fixes #10 - Add better error handling with a token is not set
  * Add MERGE_REQUEST_URL environment variable when creating a MR for r10k
 ## 0.8.1
  * Improves error handling when tags already exist

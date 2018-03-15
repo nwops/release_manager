@@ -32,6 +32,18 @@ module ReleaseManager
         client.projects(project_id)
       end
 
+      # @param [Boolean] - returns true if the user has valid access by trying to access the api
+      def validate_authorization
+        begin
+          self.new.client.todos
+          true
+        rescue Gitlab::Error::Unauthorized
+          logger.fatal "Please set the GITLAB_API_PRIVATE_TOKEN environment variable with a valid token"
+          logger.fatal "Example: export GITLAB_API_PRIVATE_TOKEN=kdii2ljljijsldjfoa"
+          raise InvalidToken, "The gitlab token is invalid or expired"
+        end
+      end
+
       # https://docs.gitlab.com/ee/api/members.html
       def add_permission(username, project_id, access_level = 20)
         begin

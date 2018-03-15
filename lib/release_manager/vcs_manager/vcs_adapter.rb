@@ -102,6 +102,11 @@ module ReleaseManager
         raise NotImplementedError
       end
 
+      # @param [Boolean] - returns true if the user has valid access by trying to access the api
+      def validate_authorization
+        raise NotImplementedError
+      end
+
       # @param Array[Hash] the changed files in the commit or all the commits in the diff between src and dst
       # @return Array[Hash]
       def diff_2_commit(diff_obj)
