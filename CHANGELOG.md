@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.2
+ * Add MERGE_REQUEST_URL environment variable when creating a MR for r10k
 ## 0.8.1
  * Improves error handling when tags already exist
  * Fixes #12 - deploy-r10k does not write a patch file

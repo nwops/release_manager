@@ -75,6 +75,15 @@ Or install it yourself as:
 
     $ gem install release_manager
     
+
+Release Manager depends on the Rugged gem which requires compilation and a few OS dependencies.
+
+### Ubnutu / Debian
+apt-get update && apt-get install libgit2-21 cmake libssh-dev
+
+### RedHat Based
+yum install cmake libssh2 libssh2-devel git
+    
 ### Install directly from source
 If you don't have access to a gem server you can use the `specific_install` gem.  This will install the latest version
 directly from source.

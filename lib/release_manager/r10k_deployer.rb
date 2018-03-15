@@ -23,7 +23,10 @@ class R10kDeployer
     ensure
       # cleanup branch, checkout previous branch
     end
-    puts mr.web_url if mr
+    if mr
+      ENV['MERGE_REQUEST_URL'] = mr.web_url
+      puts mr.web_url
+    end
   end
 
   def cleanup(branch = nil)

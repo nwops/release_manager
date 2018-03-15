@@ -65,7 +65,7 @@ describe Sandbox do
     allow_any_instance_of(Rugged::Repository).to receive(:create_branch).and_return(Rugged::Branch.new)
     allow_any_instance_of(Rugged::Repository).to receive(:checkout).and_return(Rugged::Branch.new)
     allow(gitlab_repo).to receive(:id).and_return('123')
-    expect_any_instance_of(Puppetfile).to receive(:push).with('upstream', 'my_sandbox', true)
+    expect_any_instance_of(Puppetfile).to receive(:push).with('upstream', 'my_sandbox', true, false)
     allow_any_instance_of(Sandbox).to receive(:repo_id).and_return('123455')
     allow_any_instance_of(Puppetfile).to receive(:find_mod).and_return(mod)
     allow_any_instance_of(Puppetfile).to receive(:write_to_file).and_return(true)
