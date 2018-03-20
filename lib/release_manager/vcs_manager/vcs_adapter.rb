@@ -102,6 +102,14 @@ module ReleaseManager
         raise NotImplementedError
       end
 
+      # @param hostname [String] - the hostname of the system you wnat to add keys for
+      def add_known_hosts_keys(hostname)
+        URI(ReleaseManager.gitlab_server)
+        known_hosts = File.expand_dir(File.join('~', '.ssh', 'ssh_known_hosts'))
+        `ssh-keygen -F #{hostname} -f #{known_hosts}  > /dev/null`
+        `ssh-keyscan -H #{hostname} >> #{known_hosts}` unless $CHILD_STATUS.success?
+      end
+
       # @param [Boolean] - returns true if the user has valid access by trying to access the api
       def validate_authorization
         raise NotImplementedError

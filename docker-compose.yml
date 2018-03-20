@@ -20,7 +20,7 @@ services:
   runner:
     depends_on:
       - web
-    image: 'gitlab/gitlab-runner:ubuntu-v9.5.0'
+    image: 'gitlab/gitlab-runner:ubuntu-v10.5.0'
     volumes:
       - './srv/gitlab-runner/config:/etc/gitlab-runner'
       - '/var/run/docker.sock:/var/run/docker.sock'
@@ -39,7 +39,7 @@ services:
       - GITLAB_API_PRIVATE_TOKEN
       #entrypoint:
   web:
-    image: 'gitlab/gitlab-ce:9.5.5-ce.0'
+    image: 'gitlab/gitlab-ce:10.5.4-ce.0'
     restart: always
 #    environment:
 #      GITLAB_OMNIBUS_CONFIG: |

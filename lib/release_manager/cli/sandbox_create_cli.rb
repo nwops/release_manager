@@ -124,6 +124,10 @@ Options:
       begin
         ReleaseManager::VCSManager.default_instance.validate_authorization
         s = Sandbox.create(options[:sandbox_name], options)
+      rescue Rugged::SshError => e
+        puts e.message.fatal
+        puts 'Please see https://github.com/nwops/release_manager#ssh-agent-usage for info on starting the ssh-agent'.fatal
+        exit 1
       rescue InvalidToken => e
         puts e.message.fatal
         puts "Please update your Gitlab API token as it may be expired or incorrect".fatal

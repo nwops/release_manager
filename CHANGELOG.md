@@ -3,6 +3,8 @@
 ## Unreleased
 
 ## 0.8.2
+ * Fixes #7 - sandbox-create hangs when ssh does not have host id key
+ * Fixes #6 - sandbox-create hangs when ssh-agent does not have a key/id
  * Fixes #10 - Add better error handling with a token is not set
  * Add MERGE_REQUEST_URL environment variable when creating a MR for r10k
 ## 0.8.1

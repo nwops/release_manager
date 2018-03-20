@@ -60,6 +60,7 @@ module ReleaseManager
       # @return [Rugged::Remote] a rugged remote object
       def add_remote(url, remote_name = 'upstream', reset_url = false )
         return false unless git_url?(url)
+        url = url.gsub('"', '') # remove quotes if url contains quotes
         if remote_exists?(remote_name)
           # ensure the correct url is set
           # this sets a non persistant fetch url

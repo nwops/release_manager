@@ -35,7 +35,7 @@ module ReleaseManager
       # @param [Boolean] - returns true if the user has valid access by trying to access the api
       def validate_authorization
         begin
-          self.new.client.todos
+          client.todos
           true
         rescue Gitlab::Error::Unauthorized
           logger.fatal "Please set the GITLAB_API_PRIVATE_TOKEN environment variable with a valid token"
