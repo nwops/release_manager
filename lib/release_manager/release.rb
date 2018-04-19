@@ -65,12 +65,13 @@ class Release
     log.run(options[:remote], puppet_module.src_branch)
   end
 
-  def push
+  # @param id [String] - a ref spec to push
+  def push(id = nil)
     if dry_run?
       logger.info "Would have just pushed the code and tag to #{puppet_module.source}"
       return
     end
-    puppet_module.push_to_upstream
+    puppet_module.push_to_upstream(id)
   end
 
   def dry_run?
@@ -125,13 +126,13 @@ class Release
       tag(id)
       # pushes the updated code and tags to the upstream repo
       if auto_release?
-       push
+       push(id)
        return
       end
       print "Ready to release version #{version} to #{puppet_module.source}\n and forever change history(y/n)?: ".yellow
       answer = gets.downcase.chomp
       if answer == 'y'
-        push
+        push(id)
         $?.success?
       else
         puts "Nah, forget it, this release wasn't that cool anyways.".yellow

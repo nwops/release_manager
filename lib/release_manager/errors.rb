@@ -17,3 +17,4 @@ class PatchError < Exception; end
 class AlreadyReleased < Exception; end
 class AlreadyDeployed < Exception; end
 class TagExists < Exception; end
+class NoTagsExists < Exception; end

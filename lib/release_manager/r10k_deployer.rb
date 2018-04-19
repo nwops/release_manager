@@ -24,7 +24,6 @@ class R10kDeployer
       # cleanup branch, checkout previous branch
     end
     if mr
-      ENV['MERGE_REQUEST_URL'] = mr.web_url
       puts mr.web_url
     end
   end

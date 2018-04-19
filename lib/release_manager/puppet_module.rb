@@ -204,9 +204,10 @@ class PuppetModule < WorkflowAction
  end
 
  # pushes the source and tags
- def push_to_upstream
+ # @param id [String] - a ref spec to push
+ def push_to_upstream(id = nil)
    push_branch(source, src_branch)
-   push_tags(source)
+   push_tags(source, id)
  end
 
  # @return [String] the oid of the commit that was created

@@ -47,7 +47,7 @@ module ReleaseManager
         else
           logger.info("Cloning repo with url: #{url} to #{path}")
           r = Rugged::Repository.clone_at(url, path, {
-              #progress: lambda { |output| puts output },
+              #progress: lambda { |output| logger.debug output },
               credentials: credentials.call(url)
           })
           r
@@ -144,6 +144,16 @@ module ReleaseManager
         repo.tags.map(&:name)
       end
 
+      # @return [Rugged::Tag]
+      # @param id [String] - the tag name or oid
+      def find_tag(id)
+        if id.length >= 40
+          repo.tags.find {|t| t.target.oid == id  }
+        else
+          repo.tags.find {|t| t.name == id }
+        end
+      end
+
       # @param name [String] - the name of the tag to check for existence
       # @return [Boolean] - return true if the tag exists
       def tag_exists?(name)
@@ -152,9 +162,19 @@ module ReleaseManager
 
       # push all the tags to the remote
       # @param [String] remote_name - the remote name to push tags to
-      def push_tags(remote_name)
+      # @param id [String] - a ref spec to push, set to nil to push all
+      def push_tags(remote_name, id = nil)
         remote = find_or_create_remote(remote_name)
-        refs = repo.tags.map(&:canonical_name)
+        raise RemoteNotFound, "Remote named: #{remote_name} was not found" unless remote
+        all_refs = repo.tags.map(&:canonical_name)
+        refs = if id
+                 tag = find_tag(id)
+                 tag.canonical_name if tag
+               else
+                 all_refs
+               end
+        raise NoTagsExists, "No tags were pushed" if refs.empty?
+        logger.debug("Pushing refs #{refs}")
         logger.info("Pushing tags to remote #{remote.url}")
         remote.push(refs, credentials: credentials)
       end

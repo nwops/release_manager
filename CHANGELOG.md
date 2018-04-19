@@ -1,7 +1,8 @@
 # Release Manager
 
 ## Unreleased
-
+ * Adds ability to push a single tag
+ 
 ## 0.8.3
  * Fixes issue when git urls with hypens not being found
 
