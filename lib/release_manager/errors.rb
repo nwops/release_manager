@@ -10,6 +10,7 @@ class GitError < Exception; end
 class RepoNotFound < Exception; end
 class InvalidModule < Exception; end
 class InvalidToken < Exception; end
+class RemoteNotFound < Exception; end
 class InvalidSshkey < Exception; end
 class InvalidBranchName < Exception; end
 class PatchError < Exception; end

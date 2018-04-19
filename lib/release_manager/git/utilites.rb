@@ -130,6 +130,7 @@ module ReleaseManager
       # @param [String] remote_name - the remote name to push the branch to
       def push_branch(remote_name, branch, force = false)
         remote = find_or_create_remote(remote_name)
+        raise RemoteNotFound, "Remote named: #{remote_name} was not found" unless remote
         b = repo.branches[branch]
         raise InvalidBranchName.new("Branch #{branch} does not exist locally, cannot push") unless b
         refs = [b.canonical_name]
@@ -219,7 +220,7 @@ module ReleaseManager
       # @return [MatchData] MatchData if the remote name is a url
       # Is the name actually a url?
       def git_url?(name)
-        /([A-Za-z0-9]+@|http(|s)\:\/\/)([A-Za-z0-9.]+)(:|\/)([A-Za-z0-9\/]+)(\.git)?/.match(name)
+        /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.match(name)
       end
 
       # @return [String] - the author name found in the config

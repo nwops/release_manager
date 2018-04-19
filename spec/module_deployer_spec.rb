@@ -103,7 +103,7 @@ describe ModuleDeployer do
           modulepath: File.join(fixtures_dir, 'puppet-debug'),
           commit: false,
           push: false,
-          remote: 'git@github.com/nwops/something.git',
+          remote: 'git@github.com:example42/control-repo.git',
           dry_run: false,
           auto: true
       }

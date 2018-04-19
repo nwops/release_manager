@@ -1,6 +1,8 @@
 # Release Manager
 
 ## Unreleased
+## 0.8.3
+ * Fixes issue when git urls with hypens not being found
 
 ## 0.8.2
  * Fixes #7 - sandbox-create hangs when ssh does not have host id key
