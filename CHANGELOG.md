@@ -1,6 +1,7 @@
 # Release Manager
 
 ## Unreleased
+
 ## 0.8.3
  * Fixes issue when git urls with hypens not being found
 
