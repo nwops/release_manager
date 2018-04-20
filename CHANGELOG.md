@@ -1,6 +1,6 @@
 # Release Manager
 
-## Unreleased
+## 0.9.0
  * Adds ability to push a single tag
  
 ## 0.8.3
