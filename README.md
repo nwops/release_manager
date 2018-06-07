@@ -407,6 +407,35 @@ ssh-add
 
 ```
 
+### Unable to exchange encryption keys
+If you see an error message related to `Unable to exchange encryption keys` you may be dealing with an issue on your git server openssh
+does not support the key exchange that libssh2 supports.  Libssh2 is used by release_manager so it is important they can negotiate on the same algorithm.
+
+There are two possible fixes for this.  
+
+* Update libssh2 to 1.7.x+
+
+You can grab the libssh2 library on your puppetserver with r10k should you not have access to libssh2-1.7.0+
+
+`cp /opt/puppetlabs/server/apps/r10k/lib/libssh2.so.1.0.1 /usr/lib64/libssh2.so.1.0.1`
+
+Note: you will actually want to copy the the library whereever release_manager is used.  Additionally you need to recompile
+the rugged gem,  only after updating libssh2 in /usr/lib64
+
+`gem uninstall rugged && gem install rugged  `
+
+
+If you don't want to update libssh2 you should add support more more algorithms on the git server.  
+
+
+```
+# /etc/ssh/sshd_config
+
+KexAlgorithms hmac-sha2-512
+```
+
+Note:  you should have more algorithms as that is an example only.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
