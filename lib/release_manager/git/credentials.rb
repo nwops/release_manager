@@ -74,7 +74,6 @@ module ReleaseManager
       # this method does currently now work
       def ssh_key_credentials(url = nil)
         logger.error("Must use ssh-agent, please run ssh-agent zsh, then ssh-add to load your ssh key")
-        exit 1
         unless File.readable?(global_private_key)
           raise Exception.new("Unable to use SSH key auth for %{url}: private key %{private_key} is missing or unreadable" % {url: url.inspect, private_key: global_private_key.inspect} )
         end
