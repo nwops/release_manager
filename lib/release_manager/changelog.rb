@@ -35,6 +35,7 @@ class Changelog < WorkflowAction
     @root_dir
   end
 
+  # Create the changelog entries and commit
   # @param remote [Boolean] - if the commit is a remote git on the vcs server
   # @return [String] - sha of the commit
   def run(remote = false, branch = 'master')
@@ -77,6 +78,23 @@ class Changelog < WorkflowAction
   # @returns [Boolean]  returns true if the Changelog has already released this version
   def already_released?
     !!changelog_lines.each_index.find {|index| changelog_lines[index] =~ /\A\s*\#{2}\s*Version #{version}/i }
+  end
+
+  # @return [Array] - array of lines of the unreleased content, text between unreleased and next version
+  def get_unreleased_content
+    unreleased_index
+    start_content = changelog_lines.slice((unreleased_index + 1), changelog_lines.count)
+    start_content.slice_when {|a,b| b.downcase.start_with?('## version') }.map {|d| d}.first
+  end
+
+  # @return [Array] - array of lines of the specified version content, text between specified version and next version
+  # @param [String] - the version of content you want
+  # @note - returns empty string if version is not found
+  def get_version_content(version)
+    start_index = changelog_lines.find_index {|line| line.downcase.include?("version #{version}") }
+    return nil unless start_index
+    start_content = changelog_lines.slice((start_index + 1), changelog_lines.count)
+    start_content.slice_when {|a,b| b.downcase.start_with?('## version') }.map {|d| d}.first
   end
 
   # @returns [Array[String]] - inserts the version header in the change log and returns the entire array of lines

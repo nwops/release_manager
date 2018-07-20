@@ -140,12 +140,13 @@ class PuppetModule < WorkflowAction
 
  # @param remote [Boolean] - create the tag remotely using the remote VCS
  # @param id [String] - the commit id to tag to
- def tag_module(remote = false, id = nil)
+ # @param remote [Boolean] - use the vcs adapter instead of local tag
+ # @param release_notes [Boolean] - add release notes to the tag when remote is true
+ def tag_module(remote = false, id = nil, release_notes = nil)
    id ||= repo.head.target_id
    if remote
-     # TODO add release_notes as the last argument, currently nil
      # where we get the latest from the changelog
-     create_tag(source, "v#{version}", id, "v#{version}", nil)
+     create_tag(source, "v#{version}", id, "v#{version}", release_notes)
    else
      create_local_tag("v#{version}", id)
    end

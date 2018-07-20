@@ -1,5 +1,8 @@
 # Release Manager
 
+## 0.9.1
+ * Adds ability to publish release notes when tagging remotely
+
 ## 0.9.0
  * Adds ability to push a single tag
  

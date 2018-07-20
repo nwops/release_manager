@@ -34,12 +34,18 @@ class Release
     puppet_module.next_version(level)
   end
 
+  def release_notes
+    notes = changelog.get_version_content(version) || changelog.get_unreleased_content || []
+    notes.join(" ")
+  end
+
+  # @param id [String] - the commit id to tag to
   def tag(id)
     if dry_run?
       logger.info "Would have just tagged the module to #{version}"
       return
     end
-    puppet_module.tag_module(options[:remote], id)
+    puppet_module.tag_module(options[:remote], id, release_notes)
   end
 
   def bump
@@ -55,14 +61,17 @@ class Release
     puppet_module.commit_metadata(options[:remote])
   end
 
+  def changelog
+    @changelog ||= Changelog.new(puppet_module.path, version, {:commit => true})
+  end
+
   # @return [String] - sha of the commit
   def bump_log
     if dry_run?
       logger.info "Would have just bumped the CHANGELOG to version #{version}"
       return
     end
-    log = Changelog.new(puppet_module.path, version, {:commit => true})
-    log.run(options[:remote], puppet_module.src_branch)
+    changelog.run(options[:remote], puppet_module.src_branch)
   end
 
   # @param id [String] - a ref spec to push

@@ -42,6 +42,11 @@ describe Release do
       allow(release.puppet_module).to receive(:already_latest?).and_return(false)
       expect(release.check_requirements).to eq(2)
     end
+
+    it '#release_notes' do
+      expect(release.release_notes).to eq("\n  * Fixes bug 1\n  * Fixes bug 2\n  \n")
+    end
+
   end
 
   describe 'module' do
