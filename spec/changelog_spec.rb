@@ -40,14 +40,20 @@ describe Changelog do
       it 'check_requirements' do
         expect{Changelog.check_requirements(path)}.to_not raise_error
       end
+
+      it '#get_unreleased_content' do
+        expect(log.get_unreleased_content).to eq(["\n", " * Fixes bug 1\n", " * Fixes bug 2\n", " \n"])
+      end
+
       it 'can find index' do
         expect(log.unreleased_index).to eq(2)
       end
       it 'updates line' do
+        date = Time.now.strftime("%B %d, %Y")
         result = ["# Module name\n",
                   "\n",
                   "## Unreleased\n",
-                  "\n## Version 0.1.2\nReleased: July 20, 2018\n",
+                  "\n## Version 0.1.2\nReleased: #{date}\n",
                   "\n",
                   " * Fixes bug 1\n",
                   " * Fixes bug 2\n",

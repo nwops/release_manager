@@ -82,9 +82,9 @@ class Changelog < WorkflowAction
 
   # @return [Array] - array of lines of the unreleased content, text between unreleased and next version
   def get_unreleased_content
-    unreleased_index
     start_content = changelog_lines.slice((unreleased_index + 1), changelog_lines.count)
-    start_content.slice_when {|a,b| b.downcase.start_with?('## version') }.map {|d| d}.first
+    end_index = start_content.find_index {|line| line.downcase.start_with?('## version')}
+    end_index ? start_content.slice(0, end_index) : start_content
   end
 
   # @return [Array] - array of lines of the specified version content, text between specified version and next version
@@ -94,7 +94,8 @@ class Changelog < WorkflowAction
     start_index = changelog_lines.find_index {|line| line.downcase.include?("version #{version}") }
     return nil unless start_index
     start_content = changelog_lines.slice((start_index + 1), changelog_lines.count)
-    start_content.slice_when {|a,b| b.downcase.start_with?('## version') }.map {|d| d}.first
+    end_index = start_content.find_index {|line| line.downcase.start_with?('## version')}
+    end_index ? start_content.slice(0, end_index) : start_content
   end
 
   # @returns [Array[String]] - inserts the version header in the change log and returns the entire array of lines

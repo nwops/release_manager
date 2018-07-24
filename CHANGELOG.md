@@ -1,5 +1,8 @@
 # Release Manager
 
+## 0.9.2
+ * Removed slice_when in order to support older rubies.
+ 
 ## 0.9.1
  * Adds ability to publish release notes when tagging remotely
 
