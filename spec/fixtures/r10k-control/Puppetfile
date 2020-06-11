@@ -1,18 +1,24 @@
+# frozen_string_literal: true
+
 mod 'apache1',
-  :git => 'https://github.com/puppetlabs/puppetlabs-apache'
+    git: 'https://github.com/puppetlabs/puppetlabs-apache'
 
 mod 'apache5',
-  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
-  :branch => 'docs_experiment'
+    git: 'https://github.com/puppetlabs/puppetlabs-apache',
+    branch: 'docs_experiment'
 
 mod 'apache2',
-  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
-  :ref => 'docs_experiment'
+    git: 'https://github.com/puppetlabs/puppetlabs-apache',
+    ref: 'docs_experiment'
 
 mod 'apache4',
-  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
-  :commit => '83401079053dca11d61945bd9beef9ecf7576cbf'
+    git: 'https://github.com/puppetlabs/puppetlabs-apache',
+    commit: '83401079053dca11d61945bd9beef9ecf7576cbf'
 
 mod 'apache3',
-  :git => 'https://github.com/puppetlabs/puppetlabs-apache',
-  :tag => '0.9.0'
+    git: 'https://github.com/puppetlabs/puppetlabs-apache',
+    tag: '0.9.0'
+
+mod 'nginx',
+    git: 'https://github.com/puppetlabs/puppetlabs-nginx',
+    branch: :control_branch

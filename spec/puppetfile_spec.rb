@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Puppetfile do
@@ -6,14 +8,15 @@ describe Puppetfile do
   end
 
   let(:mod) do
-    ControlMod.new('apache', {repo: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs'})
+    ControlMod.new('apache', repo: 'https://github.com/puppetlabs/puppetlabs-apache', branch: 'docs')
   end
 
-  let(:upstream) { "git@github.com:nwops/r10k-control" }
+  let(:upstream) { 'git@github.com:nwops/r10k-control' }
 
   let(:puppetfile) do
     Puppetfile.new(File.join(path, 'Puppetfile'))
   end
+
   it 'works' do
     expect(puppetfile).to be_a(Puppetfile)
   end
@@ -37,7 +40,7 @@ describe Puppetfile do
     puppetfile.write_version('apache1', '0.0.8')
     after = puppetfile.find_mod('apache1').version
     expect(puppetfile.to_s).to match(/0\.0\.8/)
-    expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s ).and_return(true)
+    expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s).and_return(true)
     puppetfile.write_to_file
   end
 
@@ -57,10 +60,10 @@ describe Puppetfile do
   it 'create file with source' do
     before = puppetfile.find_mod('apache1').version
     puppetfile.write_version('apache1', '0.0.8')
-    puppetfile.write_source('apache1', 'git@github.com:puppetlabs/puppetlabs-apache' )
+    puppetfile.write_source('apache1', 'git@github.com:puppetlabs/puppetlabs-apache')
     after = puppetfile.find_mod('apache1').version
     expect(puppetfile.to_s).to match(%r{git@github.com:puppetlabs/puppetlabs-apache})
-    expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s ).and_return(true)
+    expect(File).to receive(:write).with(puppetfile.puppetfile, puppetfile.to_s).and_return(true)
     puppetfile.write_to_file
   end
 
@@ -72,4 +75,7 @@ describe Puppetfile do
     expect(puppetfile.find_mod('apache2')).to be_a_instance_of(ControlMod)
   end
 
+  it 'can use control branches' do
+    expect(puppetfile.to_s).to match(/:control_branch/)
+  end
 end

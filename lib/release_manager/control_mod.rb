@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 class ControlMod
   attr_reader :name, :metadata, :repo
   attr_accessor :version
 
   def initialize(name, args)
     @name = name
-    @metadata = args.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+    @metadata = args.each_with_object({}) { |(k, v), memo| memo[k.to_sym] = v; }
   end
 
   def repo
@@ -25,22 +27,28 @@ class ControlMod
 
   def to_s
     name_line = "mod '#{name}',"
-    data = metadata.map { |k, v| ":#{k} => '#{v}'" }.join(",\n\  ")
+    data = metadata.map do |k, v|
+      v == :control_branch ? ":#{k} => #{v.inspect}" : ":#{k} => '#{v}'"
+    end.join(",\n\  ")
     "#{name_line}\n  #{data}"
   end
 
   def bump_patch_version
     return unless metadata[:tag]
+
     pieces = metadata[:tag].split('.')
     raise "invalid semver structure #{metadata[:tag]}" if pieces.count != 3
+
     pieces[2] = pieces[2].next
     pin_version(pieces.join('.'))
   end
 
   def bump_minor_version
     return unless metadata[:tag]
+
     pieces = metadata[:tag].split('.')
     raise "invalid semver structure #{metadata[:tag]}" if pieces.count != 3
+
     pieces[2] = '0'
     pieces[1] = pieces[1].next
     pin_version(pieces.join('.'))
@@ -48,8 +56,10 @@ class ControlMod
 
   def bump_major_version
     return unless metadata[:tag]
+
     pieces = metadata[:tag].split('.')
     raise "invalid semver structure #{metadata[:tag]}" if pieces.count != 3
+
     pieces[2] = '0'
     pieces[1] = '0'
     pieces[0] = pieces[0].next
@@ -79,5 +89,4 @@ class ControlMod
   def pin_url(src)
     metadata[:git] = src
   end
-
 end
