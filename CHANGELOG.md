@@ -1,4 +1,6 @@
 # Release Manager
+## 0.9.3
+* Fixes gh-17 - Hiera 5 environment layer support
 
 ## 0.9.2
  * Removed slice_when in order to support older rubies.
@@ -31,9 +33,6 @@
 ## 0.6.0
  * Adds the ability to release-mod to dump a specific SemVer release level
  * Fixes issue with changelog file not existing
-
-## 0.5.4
-* Fixes gh-17 - Hiera 5 environment layer support
 
 ## 0.5.3
 
