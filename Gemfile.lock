@@ -16,9 +16,11 @@ GEM
       httparty
       terminal-table
     highline (1.7.8)
-    httparty (0.15.6)
+    httparty (0.21.0)
+      mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
     method_source (0.9.0)
+    mini_mime (1.1.2)
     multi_xml (0.6.0)
     parallel (1.12.0)
     parser (2.4.0.2)
